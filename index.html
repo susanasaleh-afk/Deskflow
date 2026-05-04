@@ -202,8 +202,6 @@ body{background:var(--bg);color:var(--text);min-height:100vh}
 .floor-section{overflow:auto;-webkit-overflow-scrolling:touch;}
 .sidebar{display:none;position:fixed;top:0;left:0;height:100vh;z-index:1000;box-shadow:4px 0 20px rgba(0,0,0,0.15)}.sidebar.open{display:flex}.stats-row{grid-template-columns:repeat(2,1fr)}.rooms-grid{grid-template-columns:1fr}.mobile-menu-btn{display:flex!important}.mobile-overlay{display:block!important;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.4);z-index:999}}
 </style>
-<script src="https://cdn.jsdelivr.net/npm/eruda"></script>
-<script>eruda.init();</script>
 </head>
 <body>
 <div id="app"></div>
@@ -2171,6 +2169,21 @@ if(DB.get('appver','')!=='v29'){
   if(ea){try{var a=JSON.parse(ea);ADMINS.length=0;a.forEach(function(x){ADMINS.push(x)});}catch(e){}}
 })();
 render();
+</script>
+<script src="https://cdn.jsdelivr.net/npm/eruda"></script>
+<script>
+eruda.init();
+// Override setState to log to Eruda
+var _origSetState = setState;
+setState = function(patch) {
+  console.log('setState:', JSON.stringify(patch));
+  try {
+    _origSetState(patch);
+    console.log('setState OK, office:', S.office, 'view:', S.view);
+  } catch(e) {
+    console.error('setState ERROR:', e.message, e.stack);
+  }
+};
 </script>
 </body>
 </html>
