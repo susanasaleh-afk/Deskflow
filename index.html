@@ -1,0 +1,2098 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Deskflow</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+<script src="https://cdn.jsdelivr.net/npm/@azure/msal-browser@2.38.3/lib/msal-browser.min.js"></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --green:#1D9E75;--green-bg:#E1F5EE;--green-border:#5DCAA5;--green-dark:#0F6E56;
+  --red:#D85A30;--red-bg:#FAECE7;--red-border:#F0997B;--red-dark:#993C1D;
+  --blue:#185FA5;--blue-bg:#E6F1FB;--blue-border:#85B7EB;
+  --purple:#3C3489;--purple-bg:#EEEDFE;--purple-border:#AFA9EC;
+  --amber:#BA7517;--amber-bg:#EAF3DE;--amber-border:#97C459;
+  --border:#e5e7eb;--bg:#f4f5f7;--surface:#fff;
+  --text:#111827;--text2:#6b7280;--text3:#9ca3af;
+  --r:8px;--r-lg:12px;--r-xl:16px;
+  font-family:'DM Sans',system-ui,sans-serif;
+}
+body{background:var(--bg);color:var(--text);min-height:100vh}
+.app{display:flex;height:100vh;overflow:hidden}/* Sidebar */
+.sidebar{width:220px;background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;flex-shrink:0;overflow-y:auto}
+.logo-wrap{padding:16px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px}
+.logo-icon{width:32px;height:32px;background:var(--green-bg);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:16px}
+.logo-text{font-size:16px;font-weight:700}.logo-text span{color:var(--green)}
+.nav-section{padding:10px 8px}
+.nav-label{font-size:10px;color:var(--text3);padding:0 10px;margin-bottom:5px;text-transform:uppercase;letter-spacing:.06em}
+.nav-btn{display:flex;align-items:center;gap:10px;width:100%;padding:9px 10px;border-radius:var(--r);border:none;cursor:pointer;font-size:13px;font-family:inherit;text-align:left;background:none;color:var(--text2)}
+.nav-btn:hover{background:#f3f4f6}
+.nav-btn.active{background:var(--green-bg);color:var(--green-dark);font-weight:600}
+.offices-section{padding:8px;border-top:1px solid var(--border)}
+.office-btn{display:flex;align-items:center;gap:8px;width:100%;padding:7px 10px;border-radius:var(--r);border:none;cursor:pointer;font-size:12px;font-family:inherit;text-align:left;background:none;color:var(--text2)}
+.office-btn:hover{background:#f3f4f6}
+.office-btn.active{background:#f3f4f6;color:var(--text);font-weight:600}
+.office-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.user-section{padding:10px 8px;border-top:1px solid var(--border);margin-top:auto}
+.user-card{display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:var(--r);background:#f9fafb;border:1px solid var(--border)}
+.user-av{width:30px;height:30px;border-radius:50%;background:var(--green-bg);color:var(--green-dark);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0}
+/* Main */
+.main{flex:1;display:flex;flex-direction:column;overflow:hidden;min-width:0}
+.mobile-menu-btn{display:none;background:none;border:none;font-size:22px;cursor:pointer;padding:4px 8px;color:var(--text2)}
+.mobile-overlay{display:none}
+.topbar{background:var(--surface);border-bottom:1px solid var(--border);padding:0 24px;display:flex;align-items:center;gap:10px;height:52px;flex-shrink:0}
+.topbar-title{flex:1;font-size:15px;font-weight:600}
+/* Calendar */
+.cal-bar{background:var(--surface);border-bottom:1px solid var(--border);padding:8px 24px;display:flex;flex-direction:column;gap:6px;flex-shrink:0}
+.cal-bar-header{display:flex;align-items:center;gap:6px}
+.cal-month-label{font-size:13px;font-weight:600;flex:1}
+.cal-nav-btn{background:none;border:1px solid var(--border);border-radius:var(--r);padding:3px 10px;font-size:13px;cursor:pointer;color:var(--text2)}
+.cal-nav-btn:hover{background:#f3f4f6}
+.cal-today-btn{font-size:11px;padding:3px 10px;background:var(--green-bg);color:var(--green-dark);border:1px solid var(--green-border);border-radius:var(--r);cursor:pointer;font-family:inherit}
+.cal-view-toggle{display:flex;border:1px solid var(--border);border-radius:var(--r);overflow:hidden}
+.cal-view-btn{padding:3px 10px;font-size:11px;border:none;background:none;cursor:pointer;font-family:inherit;color:var(--text2)}
+.cal-view-btn.active{background:var(--green-bg);color:var(--green-dark);font-weight:600}
+.week-strip{display:grid;grid-template-columns:repeat(7,1fr);gap:4px}
+.week-day{display:flex;flex-direction:column;align-items:center;gap:2px;padding:5px 2px;border-radius:var(--r);cursor:pointer;border:1.5px solid transparent}
+.week-day:hover{background:#f3f4f6}
+.week-day.selected{border-color:var(--green);background:var(--green-bg)}
+.week-day.holiday{background:var(--red-bg)!important;border-color:var(--red-border)!important;}
+.week-day.holiday .wd-num,.week-day.holiday .wd-name{color:var(--red-dark)!important}
+.mg-day.holiday{background:var(--red-bg)!important;}
+.mg-day.holiday .mg-num{color:var(--red-dark)!important}
+.wd-name{font-size:9px;color:var(--text3);text-transform:uppercase}
+.wd-num{width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600}
+.week-day.today .wd-num{background:var(--green);color:#fff}
+.wd-dots{display:flex;gap:2px;justify-content:center;min-height:5px}
+.wd-dot{width:4px;height:4px;border-radius:50%}
+.month-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:2px}
+.mg-header{font-size:9px;color:var(--text3);text-transform:uppercase;text-align:center;padding:3px 0}
+.mg-day{min-height:34px;padding:3px 5px;border-radius:5px;cursor:pointer;border:1.5px solid transparent}
+.mg-day:hover{background:#f3f4f6}
+.mg-day.selected{border-color:var(--green);background:var(--green-bg)}
+.mg-day.other-month{opacity:.3}
+.mg-num{font-size:11px;font-weight:500}
+.mg-day.today .mg-num{background:var(--green);color:#fff;border-radius:50%;width:18px;height:18px;display:flex;align-items:center;justify-content:center}
+/* Content */
+.content{flex:1;overflow:auto;padding:20px 24px}
+/* Stats */
+.stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:16px}
+.stat-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);padding:14px 16px}
+.stat-lbl{font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px}
+.stat-val{font-size:24px;font-weight:700}
+.stat-sub{font-size:10px;color:var(--text3);margin-top:2px}
+/* Card */
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);padding:18px;margin-bottom:14px;overflow:visible}
+.card-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+.card-title{font-size:14px;font-weight:600}
+/* Desk */
+.desk{border-radius:var(--r);cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:9px;font-weight:700;transition:transform .1s,box-shadow .1s;border:1.5px solid transparent;width:44px;height:40px;flex-shrink:0;gap:1px}
+.desk:hover:not(.desk-fixed){transform:scale(1.1);box-shadow:0 2px 8px rgba(0,0,0,.1)}
+.desk-available{background:var(--green-bg);border-color:var(--green-border);color:var(--green-dark)}
+.desk-booked{background:var(--red-bg);border-color:var(--red-border);color:var(--red-dark)}
+.desk-mine{background:var(--blue-bg);border-color:var(--blue-border);color:var(--blue)}
+.desk-fixed{background:var(--purple-bg);border-color:var(--purple-border);color:var(--purple);cursor:default}
+.desk-name{font-size:7px;opacity:.8;font-weight:400;max-width:40px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-align:center}
+.cluster-box{background:#f4f5f7;border-radius:var(--r);padding:8px;display:flex;flex-direction:column;gap:5px}
+.desk-pair{display:flex;gap:5px}
+/* Zone */
+.zone{border-radius:var(--r);display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:600;text-align:center;padding:6px 4px;border:1px solid}
+/* Parking */
+.parking-grid{display:flex;flex-wrap:wrap;gap:8px;padding:8px}
+.parking-spot{border-radius:var(--r);cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;width:62px;height:56px;border:2px solid;transition:transform .1s;font-size:10px;font-weight:700;gap:2px}
+.parking-spot:hover:not(.ps-fixed){transform:scale(1.05)}
+.ps-available{background:var(--green-bg);border-color:var(--green-border);color:var(--green-dark)}
+.ps-booked{background:var(--red-bg);border-color:var(--red-border);color:var(--red-dark)}
+.ps-mine{background:var(--blue-bg);border-color:var(--blue-border);color:var(--blue)}
+.ps-fixed{background:var(--purple-bg);border-color:var(--purple-border);color:var(--purple);cursor:default}
+/* Rooms */
+.rooms-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+.room-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);padding:14px}
+.room-name{font-size:14px;font-weight:600;margin-bottom:3px}
+.room-meta{font-size:11px;color:var(--text2);margin-bottom:8px}
+.slot{padding:3px 7px;border-radius:5px;font-size:11px;cursor:pointer;font-weight:500}
+.slot-free{background:var(--green-bg);color:var(--green-dark)}
+.slot-taken{background:#f3f4f6;color:var(--text3);cursor:default}
+.slot-mine{background:var(--blue-bg);color:var(--blue)}
+/* Legend */
+.legend{display:flex;gap:12px;margin-top:14px;flex-wrap:wrap}
+.legend-item{display:flex;align-items:center;gap:4px;font-size:11px;color:var(--text2)}
+.legend-dot{width:10px;height:10px;border-radius:3px;border:1.5px solid}
+/* Banner */
+.banner{border-radius:var(--r);padding:10px 14px;margin-bottom:14px;display:flex;align-items:center;justify-content:space-between;gap:10px}
+.banner-green{background:var(--green-bg);border:1px solid var(--green-border)}
+.banner-text{font-size:13px;color:var(--green-dark)}
+.banner-btn{padding:5px 12px;background:var(--green);color:#fff;border:none;border-radius:var(--r);font-size:12px;font-weight:600;cursor:pointer;font-family:inherit}
+/* Booking list */
+.booking-item{padding:12px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px}
+.booking-item:last-child{border-bottom:none}
+.booking-icon{width:38px;height:38px;border-radius:var(--r);display:flex;align-items:center;justify-content:center;font-size:17px;flex-shrink:0}
+.cancel-btn{padding:4px 10px;border:1px solid var(--border);border-radius:var(--r);background:none;cursor:pointer;font-size:11px;color:var(--text2);font-family:inherit;flex-shrink:0}
+.cancel-btn:hover{background:#f3f4f6}
+/* Modal */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.45);display:flex;align-items:center;justify-content:center;z-index:1000;padding:16px}
+.modal{background:var(--surface);border-radius:var(--r-xl);padding:26px;width:100%;max-width:320px;box-shadow:0 20px 60px rgba(0,0,0,.2)}
+.modal h3{font-size:16px;font-weight:700;margin-bottom:3px}
+.modal-sub{font-size:12px;color:var(--text2);margin-bottom:18px}
+.modal-info{border-radius:var(--r);padding:9px 12px;font-size:13px;margin-bottom:14px}
+.modal-info-green{background:var(--green-bg);color:var(--green-dark);border:1px solid var(--green-border)}
+.modal-info-red{background:var(--red-bg);color:var(--red-dark);border:1px solid var(--red-border)}
+.modal-row{margin-bottom:10px}
+.modal-row label{display:block;font-size:10px;color:var(--text3);margin-bottom:3px;text-transform:uppercase;letter-spacing:.05em;font-weight:600}
+.modal-row input,.modal-row select{width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:var(--r);font-size:13px;background:var(--bg);font-family:inherit;color:var(--text)}
+.modal-actions{display:flex;gap:8px;margin-top:18px}
+.btn-primary{flex:1;padding:10px;background:var(--green);color:#fff;border:none;border-radius:var(--r);font-size:13px;font-weight:600;cursor:pointer;font-family:inherit}
+.btn-primary:hover{background:#178a65}
+.btn-primary:disabled{opacity:.6;cursor:default}
+.btn-secondary{padding:10px 14px;background:none;border:1px solid var(--border);border-radius:var(--r);font-size:13px;cursor:pointer;color:var(--text2);font-family:inherit}
+.btn-danger{flex:1;padding:10px;background:var(--red);color:#fff;border:none;border-radius:var(--r);font-size:13px;font-weight:600;cursor:pointer;font-family:inherit}
+/* Login */
+.login-screen{display:flex;align-items:center;justify-content:center;min-height:100vh;background:var(--bg)}
+.login-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-xl);padding:40px 36px;max-width:400px;width:100%;text-align:center;box-shadow:0 8px 32px rgba(0,0,0,.08)}
+.login-icon{font-size:44px;margin-bottom:10px}
+.login-title{font-size:24px;font-weight:700;margin-bottom:5px}
+.login-sub{font-size:13px;color:var(--text2);margin-bottom:24px}
+.user-list{display:flex;flex-direction:column;gap:6px;margin-bottom:14px}
+.user-chip{display:flex;align-items:center;gap:10px;padding:9px 12px;border:1.5px solid var(--border);border-radius:var(--r);cursor:pointer;text-align:left;background:none;width:100%;font-family:inherit}
+.user-chip:hover{border-color:var(--green);background:var(--green-bg)}
+.chip-av{width:30px;height:30px;border-radius:50%;background:var(--green-bg);color:var(--green-dark);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0}
+.chip-name{font-size:13px;font-weight:600}
+.or-divider{display:flex;align-items:center;gap:8px;margin:10px 0;color:var(--text3);font-size:11px}
+.or-divider::before,.or-divider::after{content:'';flex:1;height:1px;background:var(--border)}
+.login-input{width:100%;padding:10px 12px;border:1.5px solid var(--border);border-radius:var(--r);font-size:13px;font-family:inherit;margin-bottom:8px;outline:none}
+.login-input:focus{border-color:var(--green)}
+.login-btn{width:100%;padding:11px;background:var(--green);color:#fff;border:none;border-radius:var(--r);font-size:14px;font-weight:600;cursor:pointer;font-family:inherit}
+.login-btn:hover{background:#178a65}
+.login-hint{font-size:10px;color:var(--text3);margin-top:10px}
+/* Empty */
+.empty-state{padding:40px;text-align:center;color:var(--text3)}
+.empty-icon{font-size:36px;margin-bottom:10px}
+.empty-title{font-size:14px;font-weight:600;color:var(--text2);margin-bottom:3px}
+/* Toast */
+.toast{position:fixed;bottom:20px;right:20px;color:#fff;padding:10px 16px;border-radius:var(--r);font-size:13px;font-weight:500;z-index:9999;box-shadow:0 4px 14px rgba(0,0,0,.2)}
+.toast-success{background:var(--green)}.toast-error{background:var(--red)}
+/* Edit mode */
+.edit-btn{padding:5px 12px;font-size:11px;border:1px solid var(--border);border-radius:var(--r);background:none;cursor:pointer;font-family:inherit;color:var(--text2)}
+.edit-btn:hover{background:#f3f4f6}
+.edit-btn.active{background:var(--green-bg);color:var(--green-dark);border-color:var(--green-border);font-weight:600}
+/* Map canvas */
+.map-scroll-wrap{display:block;width:100%;overflow:scroll;-webkit-overflow-scrolling:touch;max-height:70vh;}
+.map-canvas{position:relative;touch-action:pan-x pan-y;-webkit-overflow-scrolling:touch;overflow:visible}
+.map-canvas.edit-on{background:#EEF6FF;border:1.5px dashed var(--blue-border);border-radius:var(--r-lg);padding:8px}
+.map-el{position:absolute;cursor:default}
+.map-el.dragging{opacity:.85;z-index:200;cursor:grabbing}
+.edit-hint{font-size:11px;color:var(--blue);background:var(--blue-bg);border:1px solid var(--blue-border);border-radius:var(--r);padding:6px 12px;margin-bottom:8px}
+/* Map zone label */
+.map-zone{border-radius:var(--r);display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:600;text-align:center;padding:5px 4px;border:1px solid;position:relative;user-select:none;overflow:visible}
+.map-zone .rot-btn{display:none;position:absolute;top:-8px;right:-8px;background:var(--blue);color:#fff;border:none;border-radius:50%;width:16px;height:16px;font-size:9px;cursor:pointer;z-index:10;align-items:center;justify-content:center}
+.map-el.editable .map-zone .rot-btn{display:flex}
+.map-el.editable .map-zone{cursor:grab;outline:2px dashed var(--blue-border)}
+.map-el.editable .map-zone:active{cursor:grabbing}
+/* Rename input */
+.rename-input{background:transparent;border:none;outline:none;font-size:inherit;font-weight:inherit;font-family:inherit;color:inherit;text-align:center;width:100%;cursor:text}
+/* Scrollbar */
+::-webkit-scrollbar{width:4px}
+::-webkit-scrollbar-thumb{background:#d1d5db;border-radius:99px}
+@media(max-width:768px){
+.map-canvas{min-width:1000px;touch-action:pan-x pan-y;}
+.content{overflow:auto;}
+.floor-section{overflow:auto;-webkit-overflow-scrolling:touch;}
+.sidebar{display:none;position:fixed;top:0;left:0;height:100vh;z-index:1000;box-shadow:4px 0 20px rgba(0,0,0,0.15)}.sidebar.open{display:flex}.stats-row{grid-template-columns:repeat(2,1fr)}.rooms-grid{grid-template-columns:1fr}.mobile-menu-btn{display:flex!important}.mobile-overlay{display:block!important;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.4);z-index:999}}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<script>
+// ═══ CONFIG ═══
+const TENANT_ID='f13ca579-d0a9-491c-bc49-b0b93da07687';
+const CLIENT_ID='c9be447a-dc70-4a61-bbbc-4e7b1e96a6ed';
+
+const _msal=new msal.PublicClientApplication({
+  auth:{
+    clientId:CLIENT_ID,
+    authority:'https://login.microsoftonline.com/'+TENANT_ID,
+    redirectUri:'https://gig-deskflow.vercel.app',
+  },
+  cache:{cacheLocation:'localStorage',storeAuthStateInCookie:false},
+});
+
+// Auth helpers
+const Auth={
+  async init(){
+    await _msal.initialize();
+    try{
+      const resp = await _msal.handleRedirectPromise();
+      if(resp && resp.account){
+        _msal.setActiveAccount(resp.account);
+        return resp.account;
+      }
+    }catch(e){
+      console.warn('MSAL redirect error:',e.message);
+      // Clear any stuck interaction state
+      sessionStorage.clear();
+    }
+    const accounts = _msal.getAllAccounts();
+    if(accounts.length>0){
+      _msal.setActiveAccount(accounts[0]);
+      return accounts[0];
+    }
+    return null;
+  },
+  async signIn(){
+    await _msal.loginRedirect({scopes:['openid','profile','email','User.Read']});
+  },
+  signOut(){
+    const account=_msal.getActiveAccount();
+    _msal.logoutRedirect({account, postLogoutRedirectUri:'https://gig-deskflow.vercel.app'});
+  },
+  getUser(){
+    const account=_msal.getActiveAccount();
+    if(!account)return null;
+    return {
+      id: account.localAccountId,
+      name: account.name||account.username.split('@')[0],
+      email: account.username,
+      initials: (account.name||account.username).split(' ').map(w=>w[0]?.toUpperCase()||'').slice(0,2).join(''),
+      office: DB.get('user_office')||'Marbella'
+    };
+  }
+};
+
+// ─── DB (localStorage for layout/prefs only) ───
+
+const ADMINS=['susana.saleh@gig.com','richard.carter@gig.com','boban.jovanovic@gig.com','lisa.cachia@gig.com','juliana.pereira@gig.com','eva.csipan@gig.com'];
+
+// ═══ USERS ═══
+const USERS={
+  async upsert(user){
+    await api('users','POST',{id:user.id,name:user.name,email:user.email,office:user.office||'Marbella'});
+  },
+  async load(){
+    const data=await api('users');
+    DEMO_USERS.length=0;
+    data.forEach(u=>DEMO_USERS.push({id:u.id,name:u.name,email:u.email,initials:(u.name||'').split(' ').map(w=>w[0]?.toUpperCase()||'').slice(0,2).join(''),office:u.office||'Marbella'}));
+    const adminsFromDB=data.filter(u=>u.is_admin).map(u=>u.email);
+    adminsFromDB.forEach(e=>{if(!ADMINS.includes(e))ADMINS.push(e);});
+  },
+  async setAdmin(email,isAdmin){
+    const user=DEMO_USERS.find(u=>u.email===email);
+    if(user) await api('users','POST',{id:user.id,name:user.name,email:user.email,office:user.office,is_admin:isAdmin});
+  },
+  async remove(id){
+    await api('users','DELETE',null,{id});
+    await this.load();
+  },
+};
+const HOLIDAYS={
+  Marbella:{"2026-01-01":"New Year's Day","2026-01-06":"Epiphany / Three Kings Day","2026-02-28":"Andalusia Day","2026-04-02":"Maundy Thursday","2026-04-03":"Good Friday","2026-05-01":"Labour Day","2026-06-11":"San Bernabe (Local)","2026-08-15":"Assumption of Mary","2026-10-12":"National Day of Spain","2026-10-19":"San Pedro Day","2026-11-01":"All Saints' Day","2026-11-02":"All Saints Day","2026-12-07":"Constitution Day","2026-12-08":"Immaculate Conception","2026-12-25":"Christmas Day"},
+  Madrid:{"2026-01-01":"New Year's Day","2026-01-06":"Epiphany / Three Kings Day","2026-04-02":"Maundy Thursday","2026-04-03":"Good Friday","2026-05-01":"Labour Day","2026-05-02":"Community of Madrid Day","2026-05-15":"San Isidro (Local)","2026-08-15":"Assumption of Mary","2026-10-12":"National Day of Spain","2026-11-01":"All Saints' Day","2026-11-02":"All Saints Day","2026-11-09":"Almudena","2026-12-07":"Constitution Day","2026-12-08":"Immaculate Conception","2026-12-25":"Christmas Day"},
+  Barcelona:{"2026-01-01":"New Year's Day","2026-01-06":"Epiphany / Three Kings Day","2026-04-03":"Good Friday","2026-04-06":"Easter Monday","2026-05-01":"Labour Day","2026-05-25":"Whit Monday","2026-06-24":"San Juan","2026-08-15":"Assumption of Mary","2026-09-11":"National Day of Catalonia","2026-09-24":"La Merce","2026-11-02":"All Saints Day","2026-10-12":"National Day of Spain","2026-11-01":"All Saints' Day","2026-12-07":"Constitution Day","2026-12-08":"Immaculate Conception","2026-12-25":"Christmas Day"},
+  Malta:{"2026-01-01":"New Year's Day","2026-02-10":"Feast of St. Paul's Shipwreck","2026-03-19":"Feast of St. Joseph","2026-03-31":"Freedom Day","2026-04-03":"Good Friday","2026-04-06":"Easter Monday","2026-05-01":"Labour Day","2026-06-07":"Sette Giugno","2026-06-29":"Feast of St. Peter and St. Paul","2026-08-15":"Assumption of Mary","2026-09-08":"Victory Day","2026-09-21":"Independence Day","2026-11-01":"All Saints' Day","2026-12-08":"Immaculate Conception","2026-12-25":"Christmas Day"},
+  Toulouse:{"2026-01-01":"New Year's Day","2026-04-06":"Easter Monday","2026-05-01":"Labour Day","2026-05-08":"Victory in Europe Day","2026-05-14":"Ascension Day","2026-05-25":"Whit Monday","2026-07-14":"Bastille Day","2026-08-15":"Assumption of Mary","2026-11-01":"All Saints' Day","2026-11-02":"All Saints Day","2026-11-11":"Armistice Day","2026-12-25":"Christmas Day"},
+  Toulouse2:{"2026-01-01":"New Year's Day","2026-04-06":"Easter Monday","2026-05-01":"Labour Day","2026-05-08":"Victory in Europe Day","2026-05-14":"Ascension Day","2026-05-25":"Whit Monday","2026-07-14":"Bastille Day","2026-08-15":"Assumption of Mary","2026-11-01":"All Saints' Day","2026-11-11":"Armistice Day","2026-12-25":"Christmas Day"},
+};
+const isHoliday=(office,date)=>HOLIDAYS[office]&&HOLIDAYS[office][date];
+
+const TIME_SLOTS=['09:00','10:00','11:00','12:00','13:00','14:00','15:00','16:00','17:00'];
+const DESK_ALIASES={R1:'1',R2:'2',R3:'3',R4:'4',R5:'5',R6:'6',R7:'7',R8:'8',S1:'9',L1:'10',L2:'11',L3:'12',L4:'13',L5:'14',L6:'15',L7:'16',L8:'17',L9:'18',L10:'19'};
+// Users managed via Supabase — loaded dynamically after login
+let DEMO_USERS=[];
+
+const OFFICES={
+  Marbella:{color:'#D85A30',flag:'\ud83c\uddea\ud83c\uddf8',layout:'marbella',food:[{"name": "Buenavida", "logo": "https://buenavidamarb.com/wp-content/uploads/2023/08/bv-logo-header.png", "type": "whatsapp", "url": "https://chat.whatsapp.com/LIsVSIydtteDJORdqueZUk"}, {"name": "Lettus", "logo": "https://lettus.es/assets/img/logo-lettus-circulo.png", "type": "whatsapp", "url": "https://chat.whatsapp.com/CqG6Zl1Sh7NKxghDY92wez"}],
+    rooms:['Linnea','Malaga','Board Room'],roomCaps:{Linnea:6,Malaga:4,'Board Room':10},
+    parking:['P1','P2','P3','P4','P5','P6','P7','P8','P9'],fixedParking:{},
+    fixedDesks:{S1:'Susana Saleh',R7:'Javier Nuñez Canovas',R8:'Juanjo Reina',L2:'Yuri Gulbis',L6:'Javier Cabrera',L8:'Manuel Gil',L4:'Cristina Llorente',L10:'Bart Troscianczuk',ceo:'Richard Carter'},
+    rCluster:[['R1','R2'],['R3','R4'],['R5','R6'],['R7','R8']],
+    lCluster:[['L1','L2'],['L3','L4'],['L5','L6'],['L7','L8'],['L9','L10']],
+    allDesks:['R1','R2','R3','R4','R5','R6','R7','R8','S1','L1','L2','L3','L4','L5','L6','L7','L8','L9','L10'],
+    ceoName:'Richard'},
+  Malta:{color:'#1D9E75',flag:'\ud83c\uddf2\ud83c\uddf9',layout:'malta',
+    floors:['L5','L4'],desks:88,
+    rooms:['Blue Grotto','Mdina','Comino','Filfla','Citadella'],roomCaps:{'Blue Grotto':6,Mdina:8,Comino:8,Filfla:6,Citadella:10},
+    l4Rooms:['Linnea','Space Invaders','Final Fantasy','Street Fighter','Sonic','Doom','Lemmings','Zelda'],
+    l4RoomCaps:{Linnea:8,'Space Invaders':6,'Final Fantasy':6,'Street Fighter':6,Sonic:6,Doom:6,Lemmings:6,Zelda:6},
+    parking:[],fixedParking:{},fixedDesks:{L47:'Boban Jovanovic'},food:[{name:'Mannarinu',logo:'https://feed.mannarinubackoffice.com/assets/feed_logo-CmbfhfuQ.png',type:'web',url:'https://feed.mannarinubackoffice.com/login'}],
+    l5Groups:[
+      {id:'purple',   color:'#9B59B6',label:'Purple zone',    desks:['M1','M2','M3','M4','M5','M6','M7','M8']},
+      {id:'red',      color:'#E74C3C',label:'Red zone',       desks:['M9','M10','M11','M12','M13','M14']},
+      {id:'lightblue',color:'#85C1E9',label:'Light Blue zone',desks:['M15','M16','M17','M18','M19','M20']},
+      {id:'brown',    color:'#795548',label:'Brown zone',     desks:['M21','M22','M23','M24','M25','M26']},
+      {id:'green',    color:'#27AE60',label:'Green zone',     desks:['M27','M28','M29','M30']},
+      {id:'pink',     color:'#E91E63',label:'Pink zone',      desks:['M33','M34','M35','M36']},
+      {id:'darkblue', color:'#1565C0',label:'Dark Blue zone', desks:['M37','M38','M39','M40']},
+      {id:'yellow',   color:'#F1C40F',label:'Yellow zone',    desks:['M41','M42','M43','M44','M45','M46','M47','M48']},
+      {id:'entrance', color:'#AAB7B8', label:'Entrance',           desks:['M49']},
+    ],
+    l4Groups:[
+      {id:'blue',  color:'#1A5276',label:'Blue zone',  desks:['L1','L2','L3','L4','L5','L6','L48','L49','L19','L20','L21','L22']},
+      {id:'red',   color:'#C0392B',label:'Red zone',   desks:['L8','L10','L13','L18','L41','L42']},
+      {id:'orange',color:'#E67E22',label:'Orange zone',desks:['L25','L26','L27','L28','L64','L11']},
+      {id:'teal',  color:'#5DADE2',label:'Cyan zone',  desks:['L14','L15','L16','L17','L63']},
+      {id:'pink',  color:'#F1C40F',label:'Yellow zone',desks:['L33','L34','L35','L36','L37','L38','L39','L40']},
+      {id:'brown', color:'#795548',label:'Brown zone', desks:['L43','L44','L7','L9','L52','L65']},
+      {id:'purple',color:'#9B59B6',label:'Purple zone',desks:['L45','L46','L29','L30','L31','L32','L51','L23']},
+      {id:'green2',color:'#52BE80',label:'Green zone', desks:['L53','L54','L55','L56','L57','L58','L59','L60','L61']},
+      {id:'black', color:'#222222',label:'Boban',      desks:['L47']},
+      {id:'legal', color:'#1E8449',label:'Legal Office',desks:['L62']},
+      {id:'allhands',color:'#B0C4DE',label:'All Hands',desks:[]},
+    ]},
+  Madrid:{color:'#7F77DD',flag:'\ud83c\uddea\ud83c\uddf8',layout:'madrid',food:[{"name": "Apeteat", "logo": "https://s3.eu-central-1.amazonaws.com/apeteat.media/web/images/svg/apeteat_logo.svg", "type": "web", "url": "https://www.apeteat.com/acceso"}],desks:30,
+    rooms:['Meeting Room 1','Meeting Room 2','Meeting Room 3','Board Room'],
+    roomCaps:{'Meeting Room 1':6,'Meeting Room 2':8,'Meeting Room 3':8,'Board Room':14},
+    phonebooths:['PB1','PB2','PB3','PB4'],parking:[],fixedParking:{},fixedDesks:{'H1':'Ilaria Faedo','R1':'Joao Ribeiro','H6':'Caner Guven','R13':'David Alonso','R17':'Filippo Stagnini','H11':'Ruben Lacarcel','R14':'Juliana Pereira','R18':'Mateusz Siwek','R15':'Zulema Gonzalez'},
+    allDesks:['H1','H2','H3','H4','H5','H6','H7','H8','H9','H10','H11','H12','R1','R2','R3','R4','R5','R6','R7','R8','R9','R10','R11','R12','R13','R14','R15','R16','R17','R18','PB1','PB2','PB3','PB4']},
+  Barcelona:{color:'#185FA5',flag:'\ud83c\uddea\ud83c\uddf8',layout:'barcelona',food:[{"name": "Apeteat", "logo": "https://s3.eu-central-1.amazonaws.com/apeteat.media/web/images/svg/apeteat_logo.svg", "type": "web", "url": "https://www.apeteat.com/acceso"}],desks:['B1','B2','B3','B4','B5','B6','B7','B8','B9','B10','B11','B12','B13','B14','P1'],
+    rooms:['Executive Room'],roomCaps:{'Executive Room':4},
+    parking:[],fixedParking:{},
+    fixedDesks:{'P1':'Pere Moline','B12':'Josefina Marchese'},
+    zoneA:['A1','A2','A3','A4','A5','A6','A7','A8','A9','A10','A11','A12'],zoneB:[],
+    allDesks:['A1','A2','A3','A4','A5','A6','A7','A8','A9','A10','A11','A12','P1','P2','P3']},
+  Toulouse:{color:'#BA7517',flag:'\ud83c\uddeb\ud83c\uddf7',layout:'toulouse',
+    rooms:['Meeting Room'],roomCaps:{'Meeting Room':10},
+    parking:[],fixedParking:{},
+    fixedDesks:{'CTO':'CTO','KB':'Kevin B','AU':'Aurelie','BT':'Bettina'},
+    allDesks:['CTO','KB','AU','BT','T1','T2','T3','T4','T5','T6','T7','T8','T9','T10','T11','T12','T13','T14','T15','T16','T17','T18','T19','T20','T21','T22','T23','T24','T25','T26','T27','T28','T29','T30','T31','T32','T33','T34','T35','T36','T37','T38','T39','T40']},
+  Toulouse2:{color:'#BA7517',flag:'\ud83c\uddeb\ud83c\uddf7',layout:'toulouse2',
+    rooms:['Meeting Room'],roomCaps:{'Meeting Room':10},
+    parking:[],fixedParking:{},
+    fixedDesks:{'CTO':'CTO','KB':'Kevin B','AU':'Aurelie','BT':'Bettina'},
+    allDesks:['CTO','KB','AU','BT','T1','T2','T3','T4','T5','T6','T7','T8','T9','T10','T11','T12','T13','T14','T15','T16','T17','T18','T19','T20','T21','T22','T23','T24','T25','T26','T27','T28','T29','T30','T31','T32','T33','T34','T35','T36','T37','T38','T39','T40','T41','T42']},
+};
+
+// ═══ STORAGE ═══
+const DB={
+  get(k,d){try{return JSON.parse(localStorage.getItem('df_'+k))??d}catch{return d}},
+  set(k,v){localStorage.setItem('df_'+k,JSON.stringify(v))},
+};
+
+// ═══ API helper ═══
+async function api(path, method='GET', body=null, params=null){
+  let url='/api/'+path;
+  if(params) url+='?'+new URLSearchParams(params).toString();
+  const opts={method,headers:{'Content-Type':'application/json'}};
+  if(body) opts.body=JSON.stringify(body);
+  const r=await fetch(url,opts);
+  if(!r.ok){const e=await r.json().catch(()=>({}));throw new Error(e.error||r.statusText);}
+  return r.json();
+}
+
+// ═══ FREE FIXED ═══
+const FF={
+  _d:[],
+  async load(){this._d=await api('free-fixed');},
+  all(){return this._d},
+  isFree(o,d,dt){return this._d.some(x=>x.office===o&&x.desk_id===d&&x.dt===dt)},
+  async add(o,d,dt){await api('free-fixed','POST',{office:o,desk_id:d,dt});await this.load();},
+  async remove(o,d,dt){await api('free-fixed','DELETE',null,{office:o,desk_id:d,dt});await this.load();},
+};
+
+// ═══ RECURRING FIXED ═══
+const RF={
+  _d:[],
+  async load(){const data=await api('recurring');this._d=data.map(x=>({...x,deskId:x.desk_id,days:typeof x.days==='string'?JSON.parse(x.days):x.days}));},
+  all(){return this._d},
+  isFixedOn(office,deskId,date){const dow=new Date(date+'T12:00:00').getDay();return this._d.find(x=>x.office===office&&x.deskId===deskId&&Array.isArray(x.days)&&x.days.includes(dow));},
+  person(office,deskId,date){return this.isFixedOn(office,deskId,date)?.person||null},
+  async add(r){await api('recurring','POST',{office:r.office,desk_id:r.deskId,person:r.person,days:JSON.stringify(r.days)});await this.load();},
+  async remove(office,deskId){await api('recurring','DELETE',null,{office,desk_id:deskId});await this.load();},
+};
+
+// ═══ CHECK-INS ═══
+const CI={
+  _d:[],
+  async load(){const data=await api('checkins');this._d=data.map(x=>({...x,deskId:x.desk_id,userId:x.user_id,userName:x.user_name}));},
+  all(){return this._d},
+  get(office,deskId,date){return this._d.find(x=>x.office===office&&x.deskId===deskId&&x.date===date)},
+  async add(office,deskId,date,userId,userName){
+    await api('checkins','POST',{office,desk_id:deskId,date,user_id:userId,user_name:userName,at:new Date().toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'})});
+    await this.load();
+  },
+  async remove(office,deskId,date,userId){await api('checkins','DELETE',null,{office,desk_id:deskId,date,user_id:userId});await this.load();},
+  noShows(office,date,bookings){return bookings.filter(b=>b.type==='desk'&&!this._d.find(c=>c.userId===b.userId&&c.deskId===b.resourceId&&c.date===date&&c.office===office));},
+};
+
+// ═══ BOOKINGS ═══
+const BK={
+  _d:{},_ud:[],_ad:null,
+  async loadOD(office,date){
+    const data=await api('bookings',undefined,null,{office,date});
+    this._d[office+'_'+date]=data.map(x=>({...x,resourceId:x.resource_id,userId:x.user_id,userName:x.user_name,userInitials:x.user_initials,roomSlot:x.room_slot,roomTitle:x.room_title}));
+  },
+  async loadUser(uid){
+    const data=await api('bookings',undefined,null,{user_id:uid});
+    this._ud=data.map(x=>({...x,resourceId:x.resource_id,userId:x.user_id,userName:x.user_name,userInitials:x.user_initials,roomSlot:x.room_slot,roomTitle:x.room_title}));
+  },
+  async loadAll(){
+    const data=await api('bookings');
+    this._ad=data.map(x=>({...x,resourceId:x.resource_id,userId:x.user_id,userName:x.user_name,userInitials:x.user_initials,roomSlot:x.room_slot,roomTitle:x.room_title}));
+  },
+  forOD(office,date){return this._d[office+'_'+date]||[]},
+  forUser(){return this._ud},
+  isBooked(office,date,type,rid,slot=null){return this.forOD(office,date).find(b=>b.type===type&&b.resourceId===rid&&(slot===null||b.roomSlot===slot))},
+  async add(b){
+    const id='b'+Date.now()+Math.random().toString(36).slice(2);
+    await api('bookings','POST',{id,office:b.office,date:b.date,type:b.type,resource_id:b.resourceId,room_slot:b.roomSlot||null,room_title:b.roomTitle||null,user_id:b.userId,user_name:b.userName,user_initials:b.userInitials||''});
+    await this.loadOD(b.office,b.date);
+    await this.loadUser(b.userId);
+  },
+  async remove(id){
+    const b=Object.values(this._d).flat().find(x=>x.id===id);
+    await api('bookings','DELETE',null,{id});
+    if(b)await this.loadOD(b.office,b.date);
+    if(S.user)await this.loadUser(S.user.id);
+  },
+  async allBookings(){await this.loadAll();return this._ad||[];},
+  _userCache:[],_allCache:null,
+};
+
+// ═══ ELEMENT LABELS (rename) ═══
+const EL={
+  get(office,key,def){return DB.get('el_'+office+'_'+key)||def},
+  set(office,key,val){DB.set('el_'+office+'_'+key,val)},
+};
+
+// ═══ MAP POSITIONS (drag) ═══
+const MP={
+  get(office){return DB.get('mp_'+office,{})},
+  set(office,pos){DB.set('mp_'+office,pos)},
+  reset(office){DB.set('mp_'+office,{})},
+};
+
+// ═══ HELPERS ═══
+function ds(n=0){const d=new Date();d.setDate(d.getDate()+n);return d.toISOString().split('T')[0]}
+function dispDate(n=0){
+  const d=new Date();d.setDate(d.getDate()+n);
+  const mo=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  const dy=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+  const s=mo[d.getMonth()]+' '+d.getDate();
+  if(n===0)return'Today, '+s;if(n===1)return'Tomorrow, '+s;if(n===-1)return'Yesterday, '+s;
+  return dy[d.getDay()]+', '+s;
+}
+function fmtD(str){
+  const d=new Date(str+'T12:00:00');
+  if(str===ds(0))return'Today';if(str===ds(1))return'Tomorrow';
+  return d.toLocaleDateString('en-GB',{weekday:'short',day:'numeric',month:'short'});
+}
+function deskLabel(id){var custom=EL.get(S.office,'desk_'+id,'');return custom||DESK_ALIASES[id]||id;}
+let tT=null;
+function toast(msg,type='success'){
+  const old=document.getElementById('_t');if(old)old.remove();if(tT)clearTimeout(tT);
+  const el=document.createElement('div');el.id='_t';el.className='toast toast-'+type;el.textContent=msg;
+  document.body.appendChild(el);tT=setTimeout(()=>el.remove(),2800);
+}
+
+// ═══ STATE ═══
+let S={
+  user:DB.get('user',null),office:'Marbella',view:'map',dayOffset:0,modal:null,
+  calView:'week',calWeekStart:0,calMonthOffset:0,maltaFloor:'L5',editMode:false,
+};
+async function setState(p){
+  Object.assign(S,p);
+  if(p.office) DB.set('user_office', p.office);
+  if(S.user && (p.office || p.dayOffset !== undefined)){
+    await BK.loadOD(S.office, ds(S.dayOffset||0));
+  }
+  render();
+}
+
+// ═══ DRAG ENGINE ═══
+function initDrag(el,office,key){
+  const onDown=e=>{
+    if(!S.editMode)return;
+    if(e.target.tagName==='INPUT')return;
+    if(e.target.tagName==='BUTTON'&&!e.target.classList.contains('drag-handle'))return;
+    e.preventDefault();e.stopPropagation();
+    const canvas=document.getElementById('map-canvas-'+office);
+    if(!canvas)return;
+    const rect=canvas.getBoundingClientRect();
+    const cx=(e.touches?e.touches[0].clientX:e.clientX)-rect.left-(parseInt(el.style.left)||0);
+    const cy=(e.touches?e.touches[0].clientY:e.clientY)-rect.top-(parseInt(el.style.top)||0);
+    el.classList.add('dragging');
+    const onMove=e=>{
+      const px=(e.touches?e.touches[0].clientX:e.clientX)-rect.left-cx;
+      const py=(e.touches?e.touches[0].clientY:e.clientY)-rect.top-cy;
+      el.style.left=Math.max(0,px)+'px';el.style.top=Math.max(0,py)+'px';
+    };
+    const onUp=()=>{
+      el.classList.remove('dragging');
+      const pos=MP.get(office);
+      pos[key]={x:parseInt(el.style.left),y:parseInt(el.style.top)};
+      MP.set(office,pos);
+      document.removeEventListener('mousemove',onMove);document.removeEventListener('mouseup',onUp);
+      el.removeEventListener('touchmove',onMove);el.removeEventListener('touchend',onUp);
+    };
+    document.addEventListener('mousemove',onMove);document.addEventListener('mouseup',onUp);
+    if(S.editMode&&window.innerWidth>768){el.addEventListener('touchmove',onMove,{passive:false});el.addEventListener('touchend',onUp);}
+  };
+  el.addEventListener('mousedown',onDown);
+  if(S.editMode&&window.innerWidth>768)el.addEventListener('touchstart',onDown,{passive:false});
+}
+
+function makeEl(office,key,x,y,content,extraStyle=''){
+  const saved=MP.get(office)[key];
+  const px=saved?saved.x:x;const py=saved?saved.y:y;
+  return '<div class="map-el'+(S.editMode?' editable':'')+'" data-key="'+key+'" style="position:absolute;left:'+px+'px;top:'+py+'px;'+extraStyle+'">'+content+'</div>';
+}
+
+function makeZone(office,key,label,bg,bc,tc,w,h,dashed,rotation){
+  const rot=rotation||DB.get('rot_'+office+'_'+key,0);
+  const rotStyle=rot?';transform:rotate('+rot+'deg)':'';
+  const border=dashed?'2px dashed '+bc:'1px solid '+bc;
+  const displayLabel=EL.get(office,key,label);
+  return '<div class="map-zone" style="background:'+bg+';border:'+border+';color:'+tc+';width:'+w+'px;min-height:'+h+'px;font-size:9px;font-weight:600'+rotStyle+'">'+
+    (S.editMode?'<button class="rot-btn" data-rot-key="'+key+'">&#8635;</button>':'')+
+    '<span class="zone-label" data-label-key="'+key+'" style="cursor:'+(S.editMode?'text':'default')+'">'+displayLabel+'</span>'+
+  '</div>';
+}
+
+function bindCanvas(office){
+  if(S.editMode&&window.innerWidth>768){
+    document.querySelectorAll('.map-el[data-key]').forEach(el=>{
+      const key=el.dataset.key;
+      initDrag(el,office,key);
+    });
+  }
+  // Rotation buttons
+  document.querySelectorAll('[data-rot-key]').forEach(btn=>{
+    btn.addEventListener('mousedown',e=>{e.stopPropagation();e.preventDefault()});
+    btn.addEventListener('click',e=>{
+      e.stopPropagation();
+      const key=btn.dataset.rotKey;
+      const cur=DB.get('rot_'+office+'_'+key,0);
+      DB.set('rot_'+office+'_'+key,(cur+90)%360);
+      render();
+    });
+  });
+  // Rename desks on dblclick (Madrid only)
+  document.querySelectorAll('[data-rename]').forEach(function(el){
+    el.addEventListener('mousedown',function(e){if(S.editMode&&e.detail>=2)e.stopPropagation()});
+    el.addEventListener('dblclick',function(e){
+      if(!S.editMode)return;
+      e.stopPropagation();
+      var id=el.dataset.rename;
+      var cur=EL.get(S.office,'desk_'+id,id);
+      var span=el.querySelector('span');
+      if(!span)return;
+      var input=document.createElement('input');
+      input.value=cur;input.style.cssText='width:34px;font-size:9px;font-weight:700;text-align:center;background:transparent;border:none;outline:none;font-family:inherit;color:inherit';
+      span.replaceWith(input);input.focus();input.select();
+      var save=function(){EL.set(S.office,'desk_'+id,input.value.trim()||id);render()};
+      input.addEventListener('blur',save);
+      input.addEventListener('keydown',function(e){if(e.key==='Enter')save();if(e.key==='Escape'){EL.set(S.office,'desk_'+id,id);render()}});
+    });
+  });
+
+  // Rename on dblclick
+  document.querySelectorAll('.zone-label[data-label-key]').forEach(span=>{
+    span.addEventListener('mousedown',e=>{if(S.editMode)e.stopPropagation()});
+    span.addEventListener('dblclick',e=>{
+      e.preventDefault();
+      if(!S.editMode)return;
+      e.stopPropagation();
+      const key=span.dataset.labelKey;
+      const cur=span.textContent;
+      const input=document.createElement('input');
+      input.className='rename-input';input.value=cur;input.style.width=(cur.length*8+20)+'px';
+      span.replaceWith(input);input.focus();input.select();
+      const save=()=>{EL.set(office,key,input.value.trim()||cur);render()};
+      input.addEventListener('blur',save);
+      input.addEventListener('keydown',e=>{if(e.key==='Enter')save();if(e.key==='Escape'){EL.set(office,key,cur);render()}});
+    });
+  });
+  // Save desk rename inputs (Madrid)
+  document.querySelectorAll('[data-desk-rename]').forEach(function(input){
+    // no stopPropagation - drag works on the outer map-el
+    input.addEventListener('change',function(){
+      EL.set(office,'desk_'+input.dataset.deskRename, input.value.trim());
+    });
+    input.addEventListener('keydown',function(e){
+      if(e.key==='Enter'){input.blur();}
+    });
+  });
+
+  // Edit toggle
+  document.getElementById('btn-export-'+office)?.addEventListener('click',()=>{
+    const pos=MP.get(office);
+    const rot={},labels={};
+    Object.keys(localStorage).forEach(function(key){
+      if(key.startsWith('df_rot_'+office+'_'))rot[key.replace('df_rot_'+office+'_','')]=JSON.parse(localStorage[key]);
+      if(key.startsWith('df_el_'+office+'_'))labels[key.replace('df_el_'+office+'_','')]=JSON.parse(localStorage[key]);
+    });
+    const data=JSON.stringify({pos,rot,labels},null,2);
+    navigator.clipboard.writeText(data).then(()=>toast('Copied! Paste to Claude ✓')).catch(()=>{
+      const ta=document.createElement('textarea');ta.value=data;document.body.appendChild(ta);ta.select();document.execCommand('copy');ta.remove();toast('Copied! ✓');
+    });
+  });
+  document.getElementById('btn-import-'+office)?.addEventListener('click',()=>{
+    const raw=prompt('Paste layout JSON:');
+    if(!raw)return;
+    try{
+      const data=JSON.parse(raw);
+      const snap=function(n){return Math.round(n/10)*10};
+      if(data.pos){const snapped={};Object.entries(data.pos).forEach(function(e){snapped[e[0]]={x:snap(e[1].x),y:snap(e[1].y)};});MP.set(office,snapped);}
+      if(data.rot)Object.entries(data.rot).forEach(function(e){DB.set('rot_'+office+'_'+e[0],e[1]);});
+      if(data.labels)Object.entries(data.labels).forEach(function(e){EL.set(office,e[0],e[1]);});
+      toast('Layout imported ✓');render();
+    }catch(e){toast('Invalid JSON','error');}
+  });
+    // Mobile menu
+  var mobileMenuBtn=document.getElementById('mobile-menu');
+  var sidebar=document.querySelector('.sidebar');
+  if(mobileMenuBtn&&sidebar){
+    mobileMenuBtn.addEventListener('click',function(){
+      sidebar.classList.toggle('open');
+      var ov=document.getElementById('mobile-overlay');
+      if(!ov){
+        ov=document.createElement('div');
+        ov.id='mobile-overlay';
+        ov.className='mobile-overlay';
+        ov.addEventListener('click',function(){sidebar.classList.remove('open');ov.style.display='none';});
+        document.body.appendChild(ov);
+      }
+      ov.style.display=sidebar.classList.contains('open')?'block':'none';
+    });
+  }
+  document.getElementById('btn-edit-'+office)?.addEventListener('click',()=>{
+    setState({editMode:!S.editMode});
+  });
+  // Reset
+  document.getElementById('btn-reset-'+office)?.addEventListener('click',()=>{
+    MP.reset(office);toast('Layout reset');render();
+  });
+}
+
+// ═══ RENDER ═══
+function render(){
+  const root=document.getElementById('app');
+  if(!root)return;
+  if(!S.user){root.innerHTML=renderLogin();bindLogin();return}
+  try{
+  root.innerHTML=
+    '<div class="app">'+renderSidebar()+'<div class="main">'+renderTopBar()+
+    (S.view!=='mybookings'?renderCalBar():'')+
+    '<div class="content" id="content">'+renderContent()+'</div></div></div>'+
+    (S.modal?renderModal():'');
+  bindAll();
+  }catch(e){root.innerHTML='<div style="padding:20px;font-size:14px;color:red"><b>Error:</b> '+e.message+'<br>Stack: '+e.stack+'</div>';}
+}
+
+// ─── LOGIN ───
+function renderLogin(){
+  return '<div class="login-screen"><div class="login-card">'+
+    '<div class="login-icon">&#127970;</div>'+
+    '<div class="login-title">desk<span style="color:var(--green)">flow</span></div>'+
+    '<div class="login-sub">Book your desk, room or parking spot.</div>'+
+    '<button class="login-btn" id="gb" style="display:flex;align-items:center;justify-content:center;gap:10px;margin-top:16px">'+
+      '<svg width="18" height="18" viewBox="0 0 21 21" xmlns="http://www.w3.org/2000/svg"><rect x="1" y="1" width="9" height="9" fill="#f25022"/><rect x="11" y="1" width="9" height="9" fill="#7fba00"/><rect x="1" y="11" width="9" height="9" fill="#00a4ef"/><rect x="11" y="11" width="9" height="9" fill="#ffb900"/></svg>'+
+      'Sign in with SSO'+
+    '</button>'+
+    '<div class="login-hint">Use your @gig.com account &middot; Internal office use</div>'+
+  '</div></div>';
+}
+function bindLogin(){
+  document.getElementById('gb')?.addEventListener('click',async()=>{
+    document.getElementById('gb').textContent='Redirecting...';
+    await Auth.signIn();
+  });
+}
+
+// ─── SIDEBAR ───
+function renderSidebar(){
+  const isAdmin=ADMINS.includes(S.user?.email);
+  const nav=[
+    {key:'map',icon:'\u229e',label:'Floor map'},
+    {key:'parking',icon:'\ud83c\udd7f\ufe0f',label:'Parking'},
+    {key:'mybookings',icon:'\ud83d\udcc5',label:'My bookings'},
+...(OFFICES[S.office]&&OFFICES[S.office].food&&OFFICES[S.office].food.length?[{key:'food',icon:'🍽️',label:'Lunch'}]:[]),
+        ...(isAdmin?[{key:'admin',icon:'\u2699\ufe0f',label:'Admin'}]:[]),
+  ];
+  return '<div class="sidebar">'+
+    '<div class="logo-wrap"><div class="logo-icon" style="background:none;padding:0"><img src="https://raw.githubusercontent.com/susanasaleh-afk/Deskflow/main/gig-logo-mint%20(2).png" style="width:32px;height:32px;object-fit:contain;border-radius:4px"/></div><div class="logo-text">GIG<span> Desk</span></div></div>'+
+    '<div class="nav-section"><div class="nav-label">Workspace</div>'+
+      nav.map(n=>'<button class="nav-btn'+(S.view===n.key?' active':'')+'" data-view="'+n.key+'"><span style="width:18px;text-align:center">'+n.icon+'</span>'+n.label+'</button>').join('')+
+    '</div>'+
+    '<div class="offices-section"><div class="nav-label" style="padding:0 10px;margin-bottom:6px">Offices</div>'+
+      Object.entries(OFFICES).map(([nm,cfg])=>
+        '<button class="office-btn'+(S.office===nm?' active':'')+'" data-office="'+nm+'">'+
+          '<div class="office-dot" style="background:'+cfg.color+'"></div>'+cfg.flag+' '+nm+
+        '</button>'
+      ).join('')+
+    '</div>'+
+    '<div class="user-section"><div class="user-card">'+
+      '<div class="user-av">'+S.user.initials+'</div>'+
+      '<div style="flex:1"><div style="font-size:12px;font-weight:600">'+S.user.name.split(' ')[0]+'</div></div>'+
+      '<button id="logout-btn" style="background:none;border:1px solid var(--border);border-radius:var(--r);cursor:pointer;font-size:11px;color:var(--text2);padding:3px 8px">Sign out</button>'+
+    '</div></div>'+
+  '</div>';
+}
+
+// ─── TOPBAR ───
+function renderTopBar(){
+  const views={map:'Floor map',rooms:'Meeting rooms',parking:'Parking',mybookings:'My bookings',admin:'Admin',food:'Lunch'};
+  return '<div class="topbar"><button class="mobile-menu-btn" id="mobile-menu">&#9776;</button>'+
+    '<div class="topbar-title">'+(views[S.view]||'')+' &mdash; '+S.office+'</div>'+
+    '<div style="font-size:12px;color:var(--text3)">'+dispDate(S.dayOffset)+'</div>'+
+    '<div style="font-size:10px;background:var(--green-bg);color:var(--green-dark);border:1px solid var(--green-border);border-radius:20px;padding:2px 8px;font-weight:600">\ud83d\udfe2 Live</div>'+
+    (S.dayOffset!==0?'<button class="cal-today-btn" id="today-btn">Today</button>':'')+
+  '</div>';
+}
+
+// ─── CALENDAR ───
+function renderCalBar(){return S.calView==='week'?renderWeek():renderMonth()}
+function getWDays(){
+  const today=new Date(),dow=today.getDay(),mo=dow===0?-6:1-dow,days=[];
+  for(let i=0;i<7;i++){const d=new Date(today);d.setDate(today.getDate()+mo+S.calWeekStart*7+i);days.push(d)}
+  return days;
+}
+function dOff(d){const t=new Date();t.setHours(0,0,0,0);const x=new Date(d);x.setHours(0,0,0,0);return Math.round((x-t)/86400000)}
+function renderWeek(){
+  const days=getWDays(),allB=BK._userCache||[],mos=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'],dNames=['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+  const f=days[0],l=days[6];
+  let ml=mos[f.getMonth()]+' '+f.getFullYear();
+  if(f.getMonth()!==l.getMonth())ml=mos[f.getMonth()]+' - '+mos[l.getMonth()]+' '+l.getFullYear();
+  return '<div class="cal-bar"><div class="cal-bar-header">'+
+    '<button class="cal-nav-btn" id="cal-prev">&#8249;</button>'+
+    '<div class="cal-month-label">'+ml+'</div>'+
+    '<button class="cal-nav-btn" id="cal-next">&#8250;</button>'+
+    (S.calWeekStart!==0?'<button class="cal-today-btn" id="cal-today">This week</button>':'')+
+    '<div class="cal-view-toggle"><button class="cal-view-btn'+(S.calView==='week'?' active':'')+'" data-calview="week">Week</button><button class="cal-view-btn'+(S.calView==='month'?' active':'')+'" data-calview="month">Month</button></div>'+
+  '</div><div class="week-strip">'+
+    days.map((d,i)=>{
+      const str=d.getFullYear()+'-'+(d.getMonth()<9?'0':'')+(d.getMonth()+1)+'-'+(d.getDate()<10?'0':'')+d.getDate(),off=dOff(d);
+      const myB=allB.filter(b=>b.date===str&&b.userId===S.user.id);
+      const dots=[];
+      if(myB.find(b=>b.type==='desk'))dots.push('var(--blue)');
+      if(myB.find(b=>b.type==='room'))dots.push('var(--green)');
+      if(myB.find(b=>b.type==='parking'))dots.push('var(--amber)');
+      var hol=isHoliday(S.office,str);
+  return '<div class="week-day'+(str===ds(0)?' today':'')+(str===ds(S.dayOffset)?' selected':'')+(hol?' holiday':'')+'" data-dayoffset="'+off+'" title="'+(hol||'')+'">'+
+        '<div class="wd-name">'+dNames[i]+'</div>'+
+        '<div class="wd-num">'+d.getDate()+'</div>'+
+        '<div class="wd-dots">'+dots.map(c=>'<div class="wd-dot" style="background:'+c+'"></div>').join('')+'</div>'+
+      '</div>';
+    }).join('')+
+  '</div></div>';
+}
+function renderMonth(){
+  const today=new Date(),ref=new Date(today.getFullYear(),today.getMonth()+S.calMonthOffset,1);
+  const mos=['January','February','March','April','May','June','July','August','September','October','November','December'];
+  const dNames=['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+  const allB=BK._userCache||[];
+  const first=new Date(ref.getFullYear(),ref.getMonth(),1),last=new Date(ref.getFullYear(),ref.getMonth()+1,0);
+  const sdow=first.getDay()===0?6:first.getDay()-1,cells=[];
+  for(let i=0;i<sdow;i++){const d=new Date(first);d.setDate(d.getDate()-(sdow-i));cells.push({d,other:true})}
+  for(let i=1;i<=last.getDate();i++)cells.push({d:new Date(ref.getFullYear(),ref.getMonth(),i),other:false});
+  const rem=7-(cells.length%7);if(rem<7)for(let i=1;i<=rem;i++){const d=new Date(last);d.setDate(d.getDate()+i);cells.push({d,other:true})}
+  return '<div class="cal-bar"><div class="cal-bar-header">'+
+    '<button class="cal-nav-btn" id="cal-prev">&#8249;</button>'+
+    '<div class="cal-month-label">'+mos[ref.getMonth()]+' '+ref.getFullYear()+'</div>'+
+    '<button class="cal-nav-btn" id="cal-next">&#8250;</button>'+
+    (S.calMonthOffset!==0?'<button class="cal-today-btn" id="cal-today">This month</button>':'')+
+    '<div class="cal-view-toggle"><button class="cal-view-btn'+(S.calView==='week'?' active':'')+'" data-calview="week">Week</button><button class="cal-view-btn'+(S.calView==='month'?' active':'')+'" data-calview="month">Month</button></div>'+
+  '</div><div class="month-grid">'+
+    dNames.map(n=>'<div class="mg-header">'+n+'</div>').join('')+
+    cells.map(function(cell){
+      const str=cell.d.getFullYear()+'-'+(cell.d.getMonth()<9?'0':'')+(cell.d.getMonth()+1)+'-'+(cell.d.getDate()<10?'0':'')+cell.d.getDate(),off=dOff(cell.d);
+      const myB=allB.filter(b=>b.date===str&&b.userId===S.user.id);
+      const dots=[];
+      if(myB.find(b=>b.type==='desk'))dots.push('var(--blue)');
+      if(myB.find(b=>b.type==='room'))dots.push('var(--green)');
+      if(myB.find(b=>b.type==='parking'))dots.push('var(--amber)');
+      return '<div class="mg-day'+(str===ds(0)?' today':'')+(str===ds(S.dayOffset)?' selected':'')+(isHoliday(S.office,str)?' holiday':'')+(cell.other?' other-month':'')+'" data-dayoffset="'+off+'">'+
+        '<div class="mg-num">'+cell.d.getDate()+'</div>'+
+        '<div style="display:flex;gap:2px;flex-wrap:wrap">'+dots.map(c=>'<div style="width:4px;height:4px;border-radius:50%;background:'+c+'"></div>').join('')+'</div>'+
+      '</div>';
+    }).join('')+
+  '</div></div>';
+}
+
+// ─── CONTENT ROUTER ───
+function renderFood(){
+  var cfg=OFFICES[S.office];
+  if(!cfg.food||cfg.food.length===0){
+    return '<div class="card"><div class="empty-state"><div class="empty-icon">🍽️</div><div class="empty-title">No food providers for this office</div></div></div>';
+  }
+  var html='<div style="display:flex;flex-direction:column;gap:16px">';
+  cfg.food.forEach(function(p){
+    var icon=p.type==='whatsapp'?'📱':'🌐';
+    var btnLabel=p.type==='whatsapp'?'Open WhatsApp':'Order online';
+    var btnColor=p.type==='whatsapp'?'#25D366':'var(--green)';
+    html+='<div class="card">'+
+      '<div class="card-header" style="display:flex;align-items:center;gap:12px">'+
+      (p.logo?'<img src="'+p.logo+'" style="height:36px;max-width:80px;object-fit:contain" onerror="this.style.display=\'none\'"/>':'')+
+      '<div class="card-title">'+p.name+'</div></div>'+
+      '<div style="padding:4px 0 8px">'+
+      '<a href="'+p.url+'" target="_blank" style="display:inline-flex;align-items:center;gap:8px;background:'+btnColor+';color:white;padding:10px 20px;border-radius:var(--r);text-decoration:none;font-weight:600;font-size:14px">'+btnLabel+'</a>'+
+      '</div></div>';
+  });
+  html+='</div>';
+  return html;
+}
+
+function renderContent(){
+  if(S.view==='map')return renderFloorMap();
+  if(S.view==='food')return renderFood();
+  if(S.view==='rooms')return renderRooms();
+  if(S.view==='parking')return renderParking();
+  if(S.view==='mybookings')return renderMyBookings();
+  if(S.view==='admin'){
+    if(!BK._ad){BK.allBookings().then(function(){render();});}
+    return renderAdmin();
+  }
+  return '';
+}
+
+// ─── FLOOR MAP ───
+function renderFloorMap(){
+  const cfg=OFFICES[S.office],date=ds(S.dayOffset);
+  const bookings=BK.forOD(S.office,date),deskB=bookings.filter(b=>b.type==='desk');
+  const getB=id=>deskB.find(b=>b.resourceId===id);
+  const isFF=id=>!!cfg.fixedDesks[id]&&FF.isFree(S.office,id,date);
+  const recurPerson=id=>RF.person(S.office,id,date);
+  const isRecur=id=>!cfg.fixedDesks[id]&&!!recurPerson(id)&&!FF.isFree(S.office,id,date);
+  const dCls=id=>{
+    const fix=!!cfg.fixedDesks[id];
+    if(fix&&!isFF(id))return'desk-fixed';
+    if(!fix&&isRecur(id))return'desk-fixed';
+    const b=getB(id);if(!b)return'desk-available';
+    if(b.userId===S.user.id)return'desk-mine';
+    return'desk-booked';
+  };
+  const D=id=>{
+    const cls=dCls(id),fn=cfg.fixedDesks[id]||recurPerson(id),freed=isFF(id),rec=isRecur(id);
+    const lbl=freed?'\ud83d\udd13':rec?'\ud83d\udd01'+(fn||''):(fn||'');
+    const title=freed?id+' (released)':fn?'Fixed - '+fn:id;
+    const _bbyFull=cls==='desk-booked'?getB(id)?.userName:'';
+    const bby=_bbyFull?_bbyFull.split(' ').map(function(w){return w[0]}).join('').toUpperCase():'';
+    const ci=CI.get(S.office,id,date);
+    const ciTag=ci?' \u2713':'';
+    return '<div class="desk '+cls+'" data-desk="'+id+'" title="'+(cls==='desk-mine'?S.user.name:bby?'Booked by '+bby:title)+'">'+
+      '<span>'+deskLabel(id)+ciTag+'</span><span class="desk-name">'+(cls==='desk-booked'?bby:cls==='desk-mine'?S.user.initials:lbl)+'</span>'+
+    '</div>';
+  };
+  const allDesks=cfg.allDesks||[];
+  const total=allDesks.length,booked=deskB.length;
+  const avail=allDesks.filter(id=>{
+    const fix=!!cfg.fixedDesks[id],freed=fix&&FF.isFree(S.office,id,date),rec=isRecur(id);
+    return(!fix||freed)&&!rec&&!getB(id);
+  }).length;
+  const myDesk=deskB.find(b=>b.userId===S.user.id);
+  const ci=myDesk?CI.get(S.office,myDesk.resourceId,date):null;
+
+  const editBar='<div style="display:flex;gap:6px;align-items:center;margin-bottom:12px;flex-wrap:wrap">'+
+    '<button id="btn-edit-'+S.office+'" class="edit-btn'+(S.editMode?' active':'')+'">'+
+      (S.editMode?'&#10003; Done':'&#9998; Edit layout')+
+    '</button>'+
+    (S.editMode?'<button id="btn-reset-'+S.office+'" class="edit-btn" style="color:var(--red)">&#8635; Reset</button>':'')+
+    (S.editMode?'<button id="btn-export-'+S.office+'" class="edit-btn" style="color:var(--blue)">&#8659; Export</button>':'')+
+    (S.editMode?'<button id="btn-import-'+S.office+'" class="edit-btn" style="color:var(--green-dark)">&#8657; Import</button>':'')+
+    (S.editMode?'<span class="edit-hint" style="margin-bottom:0">Drag to move &middot; Double-click label to rename &middot; &#8635; to rotate</span>':'')+
+  '</div>';
+
+  let mapHtml='';
+  try{
+    if(cfg.layout==='marbella')mapHtml=renderMarbella(cfg,D,date);
+    else if(cfg.layout==='malta')mapHtml=renderMalta(cfg,D);
+    else if(cfg.layout==='madrid')mapHtml=renderMadrid(cfg,D);
+    else if(cfg.layout==='barcelona')mapHtml=renderBarcelona(cfg,D);
+    else if(cfg.layout==='toulouse')mapHtml=renderToulouse(cfg,D);
+    else if(cfg.layout==='toulouse2')mapHtml=renderToulouse2(cfg,D);
+  }catch(e){mapHtml='<div style="padding:20px;color:red;font-size:14px"><b>Error loading map:</b><br>'+e.message+'<br><br>'+e.stack+'</div>';}
+
+  return '<div class="stats-row">'+
+    '<div class="stat-card"><div class="stat-lbl">Available</div><div class="stat-val" style="color:'+cfg.color+'">'+avail+'</div><div class="stat-sub">desks free</div></div>'+
+    '<div class="stat-card"><div class="stat-lbl">Booked</div><div class="stat-val">'+booked+'</div><div class="stat-sub">of '+total+'</div></div>'+
+    '<div class="stat-card"><div class="stat-lbl">Occupancy</div><div class="stat-val">'+Math.round((booked/Math.max(total,1))*100)+'%</div></div>'+
+    '<div class="stat-card"><div class="stat-lbl">Fixed</div><div class="stat-val">'+Object.keys(cfg.fixedDesks||{}).length+'</div></div>'+
+  '</div>'+
+  (myDesk?'<div class="banner banner-green"><span class="banner-text">'+(ci?'\u2713 Checked in at desk':'Desk')+' <strong>'+deskLabel(myDesk.resourceId)+'</strong>'+(ci?' at '+ci.at:' booked today.')+'</span>'+
+    (ci?'<button class="banner-btn" id="checkout-btn" data-desk="'+myDesk.resourceId+'" data-date="'+date+'">Check out</button>':
+        '<div style="display:flex;gap:6px"><button class="banner-btn" id="checkin-btn" data-desk="'+myDesk.resourceId+'" data-date="'+date+'">Check in</button><button class="banner-btn" style="background:transparent;color:var(--green-dark);border:1px solid var(--green-border)" data-cancel="'+myDesk.id+'">Cancel</button></div>')+
+  '</div>':'')+
+  (S.user&&S.user.email==='susana.saleh@gig.com'&&window.innerWidth>768?editBar:'')+'<div class="map-scroll-wrap" style="overflow:scroll;-webkit-overflow-scrolling:touch;width:100%;height:60vh;position:relative;">'+mapHtml+'</div>'+
+  '<div class="legend">'+
+    '<div class="legend-item"><div class="legend-dot" style="background:var(--green-bg);border-color:var(--green-border)"></div>Available</div>'+
+    '<div class="legend-item"><div class="legend-dot" style="background:var(--red-bg);border-color:var(--red-border)"></div>Booked</div>'+
+    '<div class="legend-item"><div class="legend-dot" style="background:var(--blue-bg);border-color:var(--blue-border)"></div>Mine</div>'+
+    '<div class="legend-item"><div class="legend-dot" style="background:var(--purple-bg);border-color:var(--purple-border)"></div>Fixed</div>'+
+  '</div>';
+}
+
+// ─── MARBELLA MAP ───
+function renderMarbella(cfg,D,date){
+  const pw=98,o=S.office;
+  let html='<div id="map-canvas-'+o+'" class="map-canvas'+(S.editMode?' edit-on':'')+'" style="min-height:380px;min-width:350px">';
+  // Top zones
+  html+=makeEl(o,'enter',  4,  4, makeZone(o,'enter',  '\ud83d\udeaa Entrance',  '#f4f5f7','#e5e7eb','#9ca3af',54,30,false,0));
+  html+=makeEl(o,'kitchen',64, 4, makeZone(o,'kitchen','\u2615 Kitchen','#EAF3DE','#97C459','#3B6D11',64,30,false,0));
+  html+=makeEl(o,'linnea', 134,4, makeZone(o,'linnea', '\ud83d\udeaa Linnea', '#E6F1FB','#85B7EB','#185FA5',100,30,false,0));
+  html+=makeEl(o,'malaga', 240,4, makeZone(o,'malaga', '\ud83d\udeaa Malaga', '#EEEDFE','#AFA9EC','#3C3489',100,30,false,0));
+  html+=makeEl(o,'boardroom',4,44,makeZone(o,'boardroom','\ud83d\udeaa Board Room','#FFF8E7','#E8C97A','#8A6A00',120,50,false,0));
+  // R cluster
+  html+=makeEl(o,'rcluster',76,44,
+    '<div>'+
+    '<div class="cluster-box" style="width:'+pw+'px">'+cfg.rCluster.map(p=>'<div class="desk-pair">'+p.map(id=>D(id)).join('')+'</div>').join('')+'</div>'+
+    '<div style="display:flex;justify-content:center;margin-top:5px;width:'+pw+'px">'+D('S1')+'</div>'+
+    '</div>');
+  // L cluster
+  html+=makeEl(o,'lcluster',192,44,
+    '<div>'+
+    '<div class="cluster-box" style="width:'+pw+'px">'+cfg.lCluster.map(p=>'<div class="desk-pair">'+p.map(id=>D(id)).join('')+'</div>').join('')+'</div>'+
+    '</div>');
+  // Terrace// CEO
+  html+=makeEl(o,'ceo',310,280,
+    '<div style="background:var(--red-bg);border:1.5px solid var(--red-border);border-radius:var(--r);width:52px;height:44px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px">'+
+      '<span style="font-size:9px;font-weight:700;color:var(--red-dark)">'+cfg.ceoName+'</span>'+
+      '<span style="font-size:7px;color:var(--red)">CEO \ud83d\udd12</span>'+
+    '</div>');
+  // All Hands
+  html+=makeEl(o,'allhands',4,340,makeZone(o,'allhands','\ud83d\udcfa All Hands','#EAF3DE','#97C459','#3B6D11',350,40,true,0));
+  html+='</div>';
+  return html;
+}
+
+// ─── MALTA MAP ───
+function renderMalta(cfg,D){
+  var floor=S.maltaFloor,groups=floor==='L5'?cfg.l5Groups:cfg.l4Groups,o=S.office;
+  var DM=function(id,color){
+    var custom=EL.get(o,'desk_'+id,'');
+    var displayName=custom||id;
+    var bg=color?color+'33':'var(--green-bg)';
+    var bc=color||'var(--green-border)';
+    var tc=color||'var(--green-dark)';
+    if(S.editMode){
+      return '<div class="desk" data-desk="'+id+'" style="background:'+bg+';border:1.5px solid '+bc+';color:'+tc+';cursor:grab;width:44px;height:40px">'+
+        '<input data-desk-rename="'+id+'" value="'+displayName+'" onmousedown="event.stopPropagation()" '+
+        'style="width:40px;height:22px;text-align:center;font-size:9px;font-weight:700;border:none;border-radius:4px;background:transparent;color:'+tc+';font-family:inherit;outline:none;cursor:text"/>'+
+        '<span style="font-size:7px;color:'+tc+';opacity:0.6">'+id+'</span>'+
+      '</div>';
+    }
+    var el=D(id);
+    var isBooked=el.indexOf('desk-booked')>-1;
+    var isMineD=el.indexOf('desk-mine')>-1;
+    if(!isBooked&&!isMineD&&color){
+      el='<div class="desk" data-desk="'+id+'" style="background:'+bg+';border:1.5px solid '+bc+';border-radius:var(--r);cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:9px;font-weight:700;width:44px;height:40px;flex-shrink:0;gap:1px;color:'+tc+'">'+
+        '<span>'+displayName+(el.indexOf('✓')>-1?' ✓':'')+'</span>'+
+        '<span class="desk-name">'+(cfg.fixedDesks&&cfg.fixedDesks[id]?cfg.fixedDesks[id]:'')+'</span>'+
+      '</div>';
+    } else {
+      if(custom){el=el.replace('>'+id+'<','>'+displayName+'<');el=el.replace('>'+id+' ✓<','>'+displayName+' ✓<');}
+    }
+    return el;
+  };
+  var html='<div id="map-canvas-'+o+'" class="map-canvas'+(S.editMode?' edit-on':'')+'" style="min-height:600px;min-width:600px">';
+  html+=makeEl(o,'malta-floors',4,4,
+    '<div style="display:flex;gap:5px">'+
+    cfg.floors.map(function(f){
+      var active=f===floor;
+      return '<button class="malta-floor-btn" data-floor="'+f+'" style="padding:4px 12px;border-radius:var(--r);border:1.5px solid '+(active?'var(--green)':'var(--border)')+';background:'+(active?'var(--green-bg)':'none')+';color:'+(active?'var(--green-dark)':'var(--text2)')+';font-size:12px;font-weight:'+(active?600:400)+';cursor:pointer;font-family:inherit">'+f+'</button>';
+    }).join('')+
+    '</div>','width:220px');
+  // Rest zone - visual only, renameable
+  var restLabel=EL.get(o,'rest-area','Rest Area');
+  html+=makeEl(o,'malta-rest',4,200,
+    '<div style="width:160px;height:220px;border:2px dashed #52BE80;border-radius:16px;background:#F0FAF4;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:6px">'+
+      '<span style="font-size:24px">☕</span>'+
+      (S.editMode
+        ?'<input data-label-key="rest-area" value="'+restLabel+'" onmousedown="event.stopPropagation()" style="width:130px;text-align:center;font-size:11px;font-weight:600;border:1px solid #52BE80;border-radius:6px;background:transparent;color:#1E8449;font-family:inherit;outline:none;padding:2px 4px"/>'
+        :'<span style="font-size:11px;color:#1E8449;font-weight:600">'+restLabel+'</span>')+
+    '</div>','width:160px');
+  var activeRooms=floor==='L4'?(cfg.l4Rooms||cfg.rooms):cfg.rooms;
+  activeRooms.forEach(function(r,i){
+    html+=makeEl(o,'malta-room-'+floor+'-'+i,4+(i*132),46,makeZone(o,'room-'+floor+'-'+i,EL.get(o,'room-'+floor+'-'+i,r),'#FFF8E7','#E8C97A','#8A6A00',124,34,false,0));
+  });
+  var yPos=94;
+  groups.forEach(function(g,gi){
+    var groupKey=floor.toLowerCase()+'-'+g.id;
+    var label=EL.get(o,groupKey,g.label);
+    // Group label removed
+    g.desks.forEach(function(id,di){
+      var cols=Math.min(g.desks.length,8);
+      var dx=4+(di%cols)*50;
+      var dy=yPos+32+(Math.floor(di/cols)*52);
+      html+=makeEl(o,'malta-d-'+id, dx, dy, DM(id,g.color));
+    });
+    yPos+=32+(Math.ceil(g.desks.length/8)*52)+16;
+  });
+  html+='</div>';
+  return html;
+}
+
+function renderMadrid(cfg,D){
+  var o=S.office;
+  // DM: in edit mode show rename input, otherwise show normal desk with custom name
+  var DM=function(id){
+    var custom=EL.get(o,'desk_'+id,'');
+    if(S.editMode){
+      return '<div style="display:flex;flex-direction:column;align-items:center;gap:2px">'+
+        '<div style="width:44px;height:8px;background:var(--blue-border);border-radius:3px;cursor:grab;margin-bottom:1px" class="drag-handle">&#8942;&#8942;</div>'+
+        '<input data-desk-rename="'+id+'" value="'+(custom||id)+'" '+
+        'onmousedown="event.stopPropagation()" '+
+        'style="width:42px;height:28px;text-align:center;font-size:9px;font-weight:700;'+
+        'border:1.5px solid var(--blue-border);border-radius:6px;background:var(--blue-bg);'+
+        'color:var(--blue);font-family:inherit;outline:none;cursor:text"/>'+
+        '<span style="font-size:7px;color:var(--text3)">'+id+'</span>'+
+      '</div>';
+    }
+    var el=D(id);
+    if(custom) el=el.replace('>'+id+'<','>'+custom+'<').replace('>'+id+' ✓<','>'+custom+' ✓<');
+    return el;
+  };
+  var o=S.office;
+  var DPB=function(id){
+    var custom=EL.get(o,'desk_'+id,'');
+    var displayName=custom||id;
+    if(S.editMode){
+      return '<div style="display:flex;flex-direction:column;align-items:center;gap:2px">'+
+        '<div style="width:44px;height:8px;background:#E67E22;border-radius:3px;cursor:grab;margin-bottom:1px">&#8942;&#8942;</div>'+
+        '<input data-desk-rename="'+id+'" value="'+displayName+'" onmousedown="event.stopPropagation()" '+
+        'style="width:42px;height:28px;text-align:center;font-size:9px;font-weight:700;'+
+        'border:1.5px solid #E67E22;border-radius:6px;background:#FEF9E7;'+
+        'color:#E67E22;font-family:inherit;outline:none;cursor:text"/>'+
+        '<span style="font-size:7px;color:var(--text3)">'+id+'</span>'+
+      '</div>';
+    }
+    var el=D(id);
+    el=el.replace('class="desk desk-available"','class="desk desk-available" style="background:#FEF9E7!important;border-color:#E67E22!important;color:#E67E22!important"');
+    el=el.replace('class="desk desk-fixed"','class="desk desk-fixed" style="background:#FEF9E7!important;border-color:#E67E22!important;color:#E67E22!important"');
+    if(custom){el=el.replace('>'+id+'<','>'+displayName+'<');el=el.replace('>'+id+' ✓<','>'+displayName+' ✓<');}
+    return el;
+  };
+  var html='<div id="map-canvas-'+o+'" class="map-canvas'+(S.editMode?' edit-on':'')+'" style="min-height:560px;min-width:620px">';
+  html+=makeEl(o,'mad-mr1', 4,  4,  makeZone(o,'mr1',      EL.get(o,'mr1','Meeting Room 1'),'#FFF8E7','#E8C97A','#8A6A00',106,44,false,0));
+  html+=makeEl(o,'mad-mr2', 118,4,  makeZone(o,'mr2',      EL.get(o,'mr2','Meeting Room 2'),'#FFF8E7','#E8C97A','#8A6A00',106,44,false,0));
+  html+=makeEl(o,'mad-mr3', 232,4,  makeZone(o,'mr3',      EL.get(o,'mr3','Meeting Room 3'),'#FFF8E7','#E8C97A','#8A6A00',106,44,false,0));
+  html+=makeEl(o,'mad-br',  346,4,  makeZone(o,'boardroom',EL.get(o,'boardroom','Board Room'),'#FFF8E7','#E8C97A','#8A6A00',160,44,false,0));
+  
+  ['H1','H2','H3','H4'].forEach(function(id,i){html+=makeEl(o,'mad-'+id,4+(i*52),78,DM(id))});
+  ['H5','H6','H7','H8'].forEach(function(id,i){html+=makeEl(o,'mad-'+id,4+(i*52),128,DM(id))});
+  ['H9','H10','H11','H12'].forEach(function(id,i){html+=makeEl(o,'mad-'+id,4+(i*52),178,DM(id))});
+  
+  ['R1','R2','R3','R4','R5','R6'].forEach(function(id,i){html+=makeEl(o,'mad-'+id,4+(i*52),258,DM(id))});
+  ['R7','R8','R9','R10','R11','R12'].forEach(function(id,i){html+=makeEl(o,'mad-'+id,4+(i*52),308,DM(id))});
+  ['R13','R14','R15','R16','R17','R18'].forEach(function(id,i){html+=makeEl(o,'mad-'+id,4+(i*52),358,DM(id))});
+  
+  (cfg.phonebooths||[]).forEach(function(id,i){html+=makeEl(o,'mad-'+id,4+(i*52),438,DPB(id))});
+  html+=makeEl(o,'mad-allhands',4,490,makeZone(o,'allhands',EL.get(o,'allhands','All Hands'),'#EAF3DE','#97C459','#3B6D11',350,32,true,0));
+  html+='</div>';
+  return html;
+}
+
+// ─── BARCELONA MAP ───
+function renderBarcelona(cfg,D){
+  var o=S.office;
+  var DR=function(id){
+    var custom=EL.get(o,'desk_'+id,'');
+    if(S.editMode){
+      return '<div style="display:flex;flex-direction:column;align-items:center;gap:2px">'+
+        '<div style="width:44px;height:8px;background:var(--blue-border);border-radius:3px;cursor:grab;font-size:7px;text-align:center;color:white">&#8942;&#8942;</div>'+
+        '<input data-desk-rename="'+id+'" value="'+(custom||id)+'" onmousedown="event.stopPropagation()" '+
+        'style="width:42px;height:28px;text-align:center;font-size:9px;font-weight:700;border:1.5px solid var(--blue-border);border-radius:6px;background:var(--blue-bg);color:var(--blue);font-family:inherit;outline:none;cursor:text"/>'+
+        '<span style="font-size:7px;color:var(--text3)">'+id+'</span>'+
+      '</div>';
+    }
+    var el=D(id);
+    if(custom) el=el.replace('>'+id+'<','>'+custom+'<').replace('>'+id+' ✓<','>'+custom+' ✓<');
+    return el;
+  };
+  var html='<div id="map-canvas-'+o+'" class="map-canvas'+(S.editMode?' edit-on':'')+'" style="min-height:600px;min-width:700px">';
+
+  // Rooms & areas
+  html+=makeEl(o,'bcn-exec',    4,   4,   makeZone(o,'bcn-executive', EL.get(o,'bcn-executive','Boardroom'), '#FAECE7','#F0997B','#993C1D',120,50,false,0));
+  html+=makeEl(o,'bcn-kitchen', 140, 4,   makeZone(o,'bcn-kitchen',   EL.get(o,'bcn-kitchen','Kitchen'),          '#E8F5E9','#81C784','#2E7D32',100,50,false,0));
+  html+=makeEl(o,'bcn-entrance',256, 4,   makeZone(o,'bcn-entrance',  EL.get(o,'bcn-entrance','Entrance'),        '#F3E5F5','#CE93D8','#6A1B9A',100,50,false,0));
+  html+=makeEl(o,'bcn-rest',    370, 4,   makeZone(o,'bcn-rest', EL.get(o,'bcn-rest','☕ Rest Area'), '#FFF8E7','#E8C97A','#8A6A00',160,220,false,0));
+
+  // Pere fixed desk (large)
+  html+=makeEl(o,'bcn-P1', 4, 80, '<div style="width:100px;height:50px;background:var(--green-bg);border:2px solid var(--green);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:var(--green);flex-direction:column;gap:2px"><span>Pere</span><span style="font-size:9px;font-weight:400">P1</span></div>');
+
+  // 14 regular desks
+  var desks=['B1','B2','B3','B4','B5','B6','B7','B8','B9','B10','B11','B12','B13','B14'];
+  desks.forEach(function(id,i){
+    html+=makeEl(o,'bcn-'+id, 4+(i%4)*58, 160+(Math.floor(i/4)*58), DR(id));
+  });
+
+  html+='</div>';
+  return html;
+}
+
+// ─── TOULOUSE MAP ───
+function renderToulouse(cfg,D){
+  var o=S.office;
+  var DT=function(id){
+    var custom=EL.get(o,'desk_'+id,'');
+    if(S.editMode){
+      return '<div style="display:flex;flex-direction:column;align-items:center;gap:2px">'+
+        '<div style="width:44px;height:8px;background:var(--blue-border);border-radius:3px;cursor:grab;font-size:7px;text-align:center;color:white">&#8942;&#8942;</div>'+
+        '<input data-desk-rename="'+id+'" value="'+(custom||id)+'" onmousedown="event.stopPropagation()" '+
+        'style="width:42px;height:28px;text-align:center;font-size:9px;font-weight:700;border:1.5px solid var(--blue-border);border-radius:6px;background:var(--blue-bg);color:var(--blue);font-family:inherit;outline:none;cursor:text"/>'+
+        '<span style="font-size:7px;color:var(--text3)">'+id+'</span>'+
+      '</div>';
+    }
+    var el=D(id);
+    if(custom) el=el.replace('>'+id+'<','>'+custom+'<').replace('>'+id+' ✓<','>'+custom+' ✓<');
+    return el;
+  };
+  var allDesks=cfg.allDesks;
+  var cols=6;
+  var html='<div id="map-canvas-'+o+'" class="map-canvas'+(S.editMode?' edit-on':'')+'" style="min-height:620px;min-width:680px">';
+  // Zones
+  html+=makeEl(o,'toul-enter',  4,  4, makeZone(o,'toul-enter', '\ud83d\udeaa Entrance',      '#f4f5f7','#e5e7eb','#9ca3af', 80, 50,false,0));
+  html+=makeEl(o,'toul-meet',   92, 4, makeZone(o,'toul-meet',  '\ud83d\udeaa Meeting Room',   '#FFF8E7','#E8C97A','#8A6A00',120, 50,false,0));
+  html+=makeEl(o,'toul-exec',  220, 4, makeZone(o,'toul-exec',  '\ud83d\udeaa Executive Room', '#FAECE7','#F0997B','#993C1D',120, 50,false,0));
+  html+=makeEl(o,'toul-rest',  348, 4, makeZone(o,'toul-rest',  '\u2615 Rest Area',            '#EAF3DE','#97C459','#3B6D11',160,220,false,0));
+  // Desks grid — 6 per row, starting below zones
+  var startY=60;
+  allDesks.forEach(function(id,i){
+    var col=i%cols;
+    var row=Math.floor(i/cols);
+    var x=4+(col*54);
+    var y=startY+(row*54);
+    html+=makeEl(o,'toul-d-'+id, x, y, DT(id));
+  });
+  html+='</div>';
+  return html;
+}
+
+function renderToulouse2(cfg,D){
+  var o=S.office;
+  var DT=function(id){
+    var custom=EL.get(o,'desk_'+id,'');
+    if(S.editMode){
+      return '<div style="display:flex;flex-direction:column;align-items:center;gap:2px">'+
+        '<div style="width:44px;height:8px;background:var(--blue-border);border-radius:3px;cursor:grab;font-size:7px;text-align:center;color:white">&#8942;&#8942;</div>'+
+        '<input data-desk-rename="'+id+'" value="'+(custom||id)+'" onmousedown="event.stopPropagation()" '+
+        'style="width:42px;height:28px;text-align:center;font-size:9px;font-weight:700;border:1.5px solid var(--blue-border);border-radius:6px;background:var(--blue-bg);color:var(--blue);font-family:inherit;outline:none;cursor:text"/>'+
+        '<span style="font-size:7px;color:var(--text3)">'+id+'</span>'+
+      '</div>';
+    }
+    var el=D(id);
+    if(custom) el=el.replace('>'+id+'<','>'+custom+'<').replace('>'+id+' ✓<','>'+custom+' ✓<');
+    return el;
+  };
+
+  // Default positions — used if localStorage has no saved position
+  var defaults={
+    't2-enter':{x:4,y:4},'t2-meet':{x:92,y:4},'t2-exec':{x:220,y:4},'t2-rest':{x:348,y:4}
+  };
+  var allDesks=cfg.allDesks;
+  var cols=6;
+  allDesks.forEach(function(id,i){
+    var col=i%cols, row=Math.floor(i/cols);
+    defaults['t2-d-'+id]={x:4+(col*54), y:60+(row*54)};
+  });
+
+  // Merge with any saved positions
+  var saved=MP.get(o)||{};
+  var pos=Object.assign({},defaults,saved);
+
+  // Override MP for this render
+  var origGet=MP.get;
+  MP.get=function(off){ return off===o?pos:origGet(off); };
+
+  var html='<div id="map-canvas-'+o+'" class="map-canvas'+(S.editMode?' edit-on':'')+'" style="min-height:620px;min-width:680px">';
+  html+=makeEl(o,'t2-enter', 4,   4, makeZone(o,'t2-enter', '\ud83d\udeaa Entrance',      '#f4f5f7','#e5e7eb','#9ca3af', 80,50,false,0));
+  html+=makeEl(o,'t2-meet',  92,  4, makeZone(o,'t2-meet',  '\ud83d\udeaa Meeting Room',   '#FFF8E7','#E8C97A','#8A6A00',120,50,false,0));
+  html+=makeEl(o,'t2-exec',  220, 4, makeZone(o,'t2-exec',  '\ud83d\udeaa Executive Room', '#FAECE7','#F0997B','#993C1D',120,50,false,0));
+  html+=makeEl(o,'t2-rest',  348, 4, makeZone(o,'t2-rest',  '\u2615 Rest Area',            '#EAF3DE','#97C459','#3B6D11',160,220,false,0));
+  allDesks.forEach(function(id,i){
+    var col=i%cols, row=Math.floor(i/cols);
+    html+=makeEl(o,'t2-d-'+id, 4+(col*54), 60+(row*54), DT(id));
+  });
+  html+='</div>';
+
+  MP.get=origGet;
+  return html;
+}
+
+// ─── ROOMS ───
+function renderRooms(){
+  var cfg=OFFICES[S.office],date=ds(S.dayOffset);
+  var bookings=BK.forOD(S.office,date).filter(function(b){return b.type==='room'});
+  var getB=function(r,s){return bookings.find(function(b){return b.resourceId===r&&b.roomSlot===s})};
+  var sCls=function(r,s){var b=getB(r,s);if(!b)return'slot-free';if(b.userId===S.user.id)return'slot-mine';return'slot-taken'};
+  var freeR=cfg.rooms.filter(function(r){return TIME_SLOTS.some(function(s){return!getB(r,s)})}).length;
+  var totalS=cfg.rooms.reduce(function(s,r){return s+(cfg.roomCaps[r]||0)},0);
+  return '<div class="stats-row">'+
+    '<div class="stat-card"><div class="stat-lbl">Available rooms</div><div class="stat-val" style="color:var(--green)">'+freeR+'</div><div class="stat-sub">of '+cfg.rooms.length+'</div></div>'+
+    '<div class="stat-card"><div class="stat-lbl">Total seats</div><div class="stat-val">'+totalS+'</div></div>'+
+    '<div class="stat-card"><div class="stat-lbl">Your meetings</div><div class="stat-val">'+bookings.filter(function(b){return b.userId===S.user.id}).length+'</div></div>'+
+    '<div class="stat-card"><div class="stat-lbl">Office</div><div class="stat-val" style="font-size:15px">'+S.office+'</div></div>'+
+  '</div>'+
+  '<div class="rooms-grid">'+cfg.rooms.map(function(room){
+    return '<div class="room-card"><div class="room-name">'+room+'</div>'+
+      '<div class="room-meta">\ud83d\udc65 '+(cfg.roomCaps[room]||'?')+' seats &middot; TV &middot; Video</div>'+
+      '<div style="display:flex;gap:4px;flex-wrap:wrap">'+
+        TIME_SLOTS.map(function(slot){
+          var cls=sCls(room,slot),b=getB(room,slot);
+          return '<div class="slot '+cls+'" data-room="'+room+'" data-slot="'+slot+'" title="'+(b&&b.userId!==S.user.id?'Booked by '+b.userName:'')+'">'+slot+'</div>';
+        }).join('')+
+      '</div></div>';
+  }).join('')+'</div>';
+}
+
+// ─── PARKING ───
+function renderParking(){
+  var cfg=OFFICES[S.office];
+  if(!cfg.parking?.length)return'<div class="card"><div class="empty-state"><div class="empty-icon">\ud83c\udd7f\ufe0f</div><div class="empty-title">No parking available</div></div></div>';
+  var date=ds(S.dayOffset),bookings=BK.forOD(S.office,date).filter(function(b){return b.type==='parking'});
+  var getB=function(id){return bookings.find(function(b){return b.resourceId===id})};
+  var sCls=function(id){if(cfg.fixedParking[id])return'ps-fixed';var b=getB(id);if(!b)return'ps-available';if(b.userId===S.user.id)return'ps-mine';return'ps-booked'};
+  var avail=cfg.parking.filter(function(id){return!cfg.fixedParking[id]&&!getB(id)}).length;
+  var mySpot=bookings.find(function(b){return b.userId===S.user.id});
+  return '<div class="stats-row">'+
+    '<div class="stat-card"><div class="stat-lbl">Available</div><div class="stat-val" style="color:var(--green)">'+avail+'</div><div class="stat-sub">of '+cfg.parking.length+'</div></div>'+
+    '<div class="stat-card"><div class="stat-lbl">Booked</div><div class="stat-val">'+bookings.length+'</div></div>'+
+    '<div class="stat-card"><div class="stat-lbl">Your spot</div><div class="stat-val" style="font-size:'+(mySpot?'18px':'24px')+'">'+( mySpot?mySpot.resourceId:'&mdash;')+'</div></div>'+
+    '<div class="stat-card"><div class="stat-lbl">Office</div><div class="stat-val" style="font-size:15px">'+S.office+'</div></div>'+
+  '</div>'+
+  (mySpot?'<div class="banner banner-green"><span class="banner-text">\ud83d\ude97 Parking spot <strong>'+mySpot.resourceId+'</strong> booked today.</span><button class="banner-btn" data-cancel="'+mySpot.id+'">Cancel</button></div>':'')+
+  '<div class="card"><div class="card-header"><div class="card-title">Parking &mdash; '+S.office+'</div></div>'+
+    '<div style="background:#f4f5f7;border-radius:var(--r);padding:7px 12px;text-align:center;font-size:10px;color:var(--text3);margin-bottom:10px">&larr; ENTRANCE / EXIT &rarr;</div>'+
+    '<div class="parking-grid">'+cfg.parking.map(function(id){
+      var cls=sCls(id),fn=cfg.fixedParking[id],b=getB(id);
+      return '<div class="parking-spot '+cls+'" data-parking="'+id+'" title="'+(b&&b.userId!==S.user.id?'Booked by '+b.userName:(fn?'Fixed - '+fn:''))+'">'+
+        '<span style="font-size:16px">\ud83d\ude97</span><span>'+id+'</span>'+
+      '</div>';
+    }).join('')+'</div>'+
+    '<div class="legend"><div class="legend-item"><div class="legend-dot" style="background:var(--green-bg);border-color:var(--green-border)"></div>Available</div>'+
+    '<div class="legend-item"><div class="legend-dot" style="background:var(--red-bg);border-color:var(--red-border)"></div>Booked</div>'+
+    '<div class="legend-item"><div class="legend-dot" style="background:var(--blue-bg);border-color:var(--blue-border)"></div>Mine</div></div>'+
+  '</div>';
+}
+
+// ─── MY BOOKINGS ───
+function renderMyBookings(){
+  var bookings=BK.forUser();
+  var icons={desk:'\ud83d\udcbb',room:'\ud83d\udeaa',parking:'\ud83d\ude97'},colors={desk:'#FAECE7',room:'#E6F1FB',parking:'#EAF3DE'};
+
+  // Check if user has a fixed desk in any office
+  var fixedInfo=null;
+  Object.keys(OFFICES).forEach(function(o){
+    var fd=OFFICES[o].fixedDesks||{};
+    Object.keys(fd).forEach(function(deskId){
+      if(fd[deskId]===S.user.name||(S.user.fixedDesk&&deskId===S.user.fixedDesk&&o===S.user.office)){
+        fixedInfo={office:o,deskId:deskId};
+      }
+    });
+  });
+  // Also check by userId match on fixedDesks value
+  if(!fixedInfo){
+    Object.keys(OFFICES).forEach(function(o){
+      var fd=OFFICES[o].fixedDesks||{};
+      Object.keys(fd).forEach(function(deskId){
+        if(fd[deskId]===S.user.name) fixedInfo={office:o,deskId:deskId};
+      });
+    });
+  }
+
+  // Build remaining days of current week (Mon-Fri, today onwards)
+  var fixedUpcoming=[];
+  if(fixedInfo){
+    var today=new Date();today.setHours(0,0,0,0);
+    var dow=today.getDay();
+    var daysToMon=dow===0?6:dow-1;
+    var mon=new Date(today);mon.setDate(today.getDate()-daysToMon);
+    for(var d=0;d<5;d++){
+      var day=new Date(mon);day.setDate(mon.getDate()+d);
+      if(day>=today){
+        var y=day.getFullYear(),m=day.getMonth()+1,dd=day.getDate();
+        var dateStr=y+'-'+(m<10?'0':'')+m+'-'+(dd<10?'0':'')+dd;
+        // Don't duplicate if already in flex bookings
+        if(!bookings.some(function(b){return b.date===dateStr&&b.type==='desk'})){
+          fixedUpcoming.push({date:dateStr,office:fixedInfo.office,deskId:fixedInfo.deskId,fixed:true});
+        }
+      }
+    }
+  }
+
+  var allUpcoming=fixedUpcoming.concat(bookings).sort(function(a,b){return a.date>b.date?1:-1});
+  var totalUpcoming=allUpcoming.length;
+
+  return '<div class="stats-row">'+
+    '<div class="stat-card"><div class="stat-lbl">Upcoming</div><div class="stat-val">'+totalUpcoming+'</div></div>'+
+    '<div class="stat-card"><div class="stat-lbl">Desks</div><div class="stat-val">'+(bookings.filter(function(b){return b.type==='desk'}).length+(fixedUpcoming.length))+'</div></div>'+
+    '<div class="stat-card"><div class="stat-lbl">Meetings</div><div class="stat-val">'+bookings.filter(function(b){return b.type==='room'}).length+'</div></div>'+
+    '<div class="stat-card"><div class="stat-lbl">Parking</div><div class="stat-val">'+bookings.filter(function(b){return b.type==='parking'}).length+'</div></div>'+
+  '</div>'+
+  (totalUpcoming===0?
+    '<div class="card"><div class="empty-state"><div class="empty-icon">\ud83d\udcc5</div><div class="empty-title">No upcoming bookings</div><div style="font-size:12px">Go to the floor map to book a desk, room or parking spot.</div></div></div>'
+  :
+    '<div class="card" style="padding:0;overflow:hidden">'+
+      '<div style="padding:12px 18px;border-bottom:1px solid var(--border);font-size:14px;font-weight:600">Upcoming reservations</div>'+
+      allUpcoming.map(function(b){
+        if(b.fixed){
+          return '<div class="booking-item">'+
+            '<div class="booking-icon" style="background:#FAECE7">\ud83d\udcbb</div>'+
+            '<div style="flex:1;min-width:0">'+
+              '<div style="font-size:13px;font-weight:600">Desk '+deskLabel(b.deskId)+' <span style="font-size:10px;background:var(--amber-bg);color:var(--amber);border:1px solid var(--amber-border);border-radius:4px;padding:1px 6px;margin-left:4px">Fixed</span></div>'+
+              '<div style="font-size:11px;color:var(--text2)">'+b.office+' &middot; '+fmtD(b.date)+' &middot; All day</div>'+
+            '</div>'+
+          '</div>';
+        }
+        return '<div class="booking-item">'+
+          '<div class="booking-icon" style="background:'+colors[b.type]+'">'+icons[b.type]+'</div>'+
+          '<div style="flex:1;min-width:0">'+
+            '<div style="font-size:13px;font-weight:600">'+(b.type==='room'?b.resourceId+' Room':b.type==='parking'?'Parking '+b.resourceId:'Desk '+deskLabel(b.resourceId))+'</div>'+
+            '<div style="font-size:11px;color:var(--text2)">'+b.office+' &middot; '+fmtD(b.date)+(b.roomSlot?' &middot; '+b.roomSlot:' &middot; All day')+(b.roomTitle?' &middot; "'+b.roomTitle+'"':'')+'</div>'+
+          '</div>'+
+          '<button class="cancel-btn" data-cancel="'+b.id+'">Cancel</button>'+
+        '</div>';
+      }).join('')+
+    '</div>'
+  );
+}
+
+// ─── ADMIN ───
+function renderAdmin(){
+  var allFixed=Object.entries(OFFICES).flatMap(function(e){return Object.entries(e[1].fixedDesks||{}).map(function(fd){return{off:e[0],deskId:fd[0],person:fd[1]}})});
+  var next14=Array.from({length:14},function(_,i){return{label:i===0?'Today':i===1?'Tomorrow':dispDate(i),date:ds(i)}});
+  var freed=FF.all(),rf=RF.all();
+
+  // DEBUG PANEL (admin only)
+  var allBKraw=BK._ad||[];
+  var allCIraw=CI.all();
+  var debugHtml='<div class="card" style="border:2px dashed var(--amber-border);background:var(--amber-bg);margin-bottom:16px">'+
+    '<div class="card-header" style="cursor:pointer" id="debug-toggle">'+
+      '<div class="card-title" style="color:var(--amber)">🔍 Debug — Raw data (click to expand)</div>'+
+      '<span id="debug-chev" style="font-size:11px;color:var(--amber)">▼ Show</span>'+
+    '</div>'+
+    '<div id="debug-body" style="display:none;font-size:11px;font-family:monospace">'+
+      '<div style="margin-bottom:8px"><strong>Bookings (all sources) — '+allBKraw.length+' total:</strong><br>'+
+        (allBKraw.length===0?'<span style="color:var(--red-dark)">EMPTY</span>':
+          allBKraw.map(function(b){return'<div style="padding:2px 0">'+b.date+' | '+b.office+' | '+b.type+' | '+b.resourceId+' | '+b.userName+'</div>'}).join(''))+
+      '</div>'+
+      '<div><strong>Check-ins (df_ci) — '+allCIraw.length+' total:</strong><br>'+
+        (allCIraw.length===0?'<span style="color:var(--text3)">No check-ins yet</span>':
+          allCIraw.map(function(c){return'<div style="padding:2px 0">'+c.date+' | '+c.office+' | '+c.deskId+' | '+c.userName+'</div>'}).join(''))+
+      '</div>'+
+      '<div style="margin-top:8px"><strong>Today:</strong> '+ds(0)+' | <strong>Yesterday:</strong> '+ds(-1)+'</div>'+
+    '</div>'+
+  '</div>';
+  var ra_orig='<div class="stats-row">'+
+    '<div class="stat-card"><div class="stat-lbl">Fixed desks</div><div class="stat-val">'+allFixed.length+'</div></div>'+
+    '<div class="stat-card"><div class="stat-lbl">Released today</div><div class="stat-val" style="color:var(--green)">'+freed.filter(function(x){return x.dt===ds(0)}).length+'</div></div>'+
+    '<div class="stat-card"><div class="stat-lbl">Total released</div><div class="stat-val">'+freed.length+'</div></div>'+
+    '<div class="stat-card"><div class="stat-lbl">Users</div><div class="stat-val">'+DEMO_USERS.length+'</div></div>'+
+  '</div>'+
+  // Release fixed desks
+  '<div class="card"><div class="card-header"><div class="card-title">\u2699\ufe0f Release fixed desks</div></div>'+
+    '<p style="font-size:13px;color:var(--text2);margin-bottom:14px">When someone with a fixed desk is not coming in, release it so others can book it.</p>'+
+    '<div style="display:grid;grid-template-columns:1fr 1fr auto;gap:8px;align-items:end;margin-bottom:14px">'+
+      '<div><div style="font-size:10px;color:var(--text3);text-transform:uppercase;margin-bottom:3px">Fixed desk</div>'+
+        '<select id="aDs" style="width:100%;padding:8px;border:1px solid var(--border);border-radius:var(--r);font-size:12px;font-family:inherit;background:var(--bg)">'+
+          allFixed.map(function(x){return'<option value="'+x.off+'|'+x.deskId+'">'+x.person+' &mdash; '+deskLabel(x.deskId)+' ('+x.off+')</option>'}).join('')+
+        '</select></div>'+
+      '<div><div style="font-size:10px;color:var(--text3);text-transform:uppercase;margin-bottom:3px">Day</div>'+
+        '<select id="aDt" style="width:100%;padding:8px;border:1px solid var(--border);border-radius:var(--r);font-size:12px;font-family:inherit;background:var(--bg)">'+
+          next14.map(function(d){return'<option value="'+d.date+'">'+d.label+'</option>'}).join('')+
+        '</select></div>'+
+      '<button id="aFb" class="btn-primary" style="padding:8px 14px">Release</button>'+
+    '</div>'+
+    (freed.length>0?'<div style="border-top:1px solid var(--border);padding-top:12px">'+
+      '<div style="font-size:12px;font-weight:600;margin-bottom:8px">Active releases</div>'+
+      freed.sort(function(a,b){return a.dt.localeCompare(b.dt)}).map(function(f){
+        var person=OFFICES[f.o]?.fixedDesks?.[f.d]||f.d,booked=BK.isBooked(f.o,f.dt,'desk',f.d);
+        return'<div style="display:flex;align-items:center;gap:8px;padding:7px 10px;background:var(--green-bg);border:1px solid var(--green-border);border-radius:var(--r);margin-bottom:4px">'+
+          '<span style="flex:1;font-size:12px;color:var(--green-dark)"><strong>'+person+'</strong> &middot; '+deskLabel(f.d)+' &middot; '+f.o+' &middot; '+fmtD(f.dt)+(booked?' &middot; <span style="background:var(--blue-bg);color:var(--blue);padding:1px 5px;border-radius:3px;font-size:10px">Booked by '+booked.userName+'</span>':'')+'</span>'+
+          '<button class="cancel-btn aUr" data-o="'+f.o+'" data-d="'+f.d+'" data-dt="'+f.dt+'">Revert</button>'+
+        '</div>';
+      }).join('')+'</div>':'')+
+  '</div>'+
+  // Recurring fixed
+  '<div class="card"><div class="card-header"><div class="card-title">\ud83d\udcc5 Recurring fixed desks</div></div>'+
+    '<p style="font-size:13px;color:var(--text2);margin-bottom:14px">Set a desk as fixed only on specific days of the week.</p>'+
+    '<div style="display:grid;grid-template-columns:1fr 1fr 1fr auto;gap:8px;align-items:end;margin-bottom:14px">'+
+      '<div><div style="font-size:10px;color:var(--text3);text-transform:uppercase;margin-bottom:3px">Office</div>'+
+        '<select id="rfOff" style="width:100%;padding:8px;border:1px solid var(--border);border-radius:var(--r);font-size:12px;font-family:inherit;background:var(--bg)">'+Object.keys(OFFICES).map(function(o){return'<option>'+o+'</option>'}).join('')+'</select></div>'+
+      '<div><div style="font-size:10px;color:var(--text3);text-transform:uppercase;margin-bottom:3px">Desk ID</div><input id="rfDesk" type="text" placeholder="e.g. L4" style="width:100%;padding:8px;border:1px solid var(--border);border-radius:var(--r);font-size:12px;font-family:inherit;background:var(--bg)"/></div>'+
+      '<div><div style="font-size:10px;color:var(--text3);text-transform:uppercase;margin-bottom:3px">Person</div><input id="rfPerson" type="text" placeholder="Name" style="width:100%;padding:8px;border:1px solid var(--border);border-radius:var(--r);font-size:12px;font-family:inherit;background:var(--bg)"/></div>'+
+      '<button id="rfSave" class="btn-primary" style="padding:8px 12px">Add</button>'+
+    '</div>'+
+    '<div style="display:flex;gap:8px;margin-bottom:14px" id="rfDays">'+
+      ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'].map(function(d,i){return'<label style="display:flex;align-items:center;gap:3px;font-size:12px;cursor:pointer"><input type="checkbox" data-day="'+(i+1===7?0:i+1)+'"/>'+d+'</label>'}).join('')+
+    '</div>'+
+    (rf.length>0?'<div style="border-top:1px solid var(--border);padding-top:10px">'+
+      '<div style="font-size:12px;font-weight:600;margin-bottom:6px">Active recurring</div>'+
+      rf.map(function(r){var dn=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];var days=Array.isArray(r.days)?r.days:(typeof r.days==='string'?JSON.parse(r.days):[]);return'<div style="display:flex;align-items:center;gap:8px;padding:6px 10px;background:#f9fafb;border:1px solid var(--border);border-radius:var(--r);margin-bottom:4px"><span style="flex:1;font-size:12px"><strong>'+r.person+'</strong> &middot; '+(r.desk_id||r.deskId)+' &middot; '+r.office+' &middot; '+days.map(function(d){return dn[d]}).join(', ')+'</span><button class="cancel-btn rfRm" data-office="'+r.office+'" data-desk="'+(r.desk_id||r.deskId)+'">Remove</button></div>'}).join('')+
+    '</div>':'')+
+  '</div>'+
+  // No-show report
+  (function(){
+    var date=ds(S.dayOffset),allB=BK.forOD(S.office,date).filter(function(b){return b.type==='desk'});
+    var cis=CI.all().filter(function(x){return x.office===S.office&&x.date===date});
+    var ns=CI.noShows(S.office,date,allB);
+    return '<div class="card"><div class="card-header"><div class="card-title">\ud83d\udcca No-show report &mdash; '+S.office+' &mdash; '+dispDate(S.dayOffset)+'</div></div>'+
+      (allB.length===0?'<div style="font-size:13px;color:var(--text3)">No desk bookings today.</div>':
+        '<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:14px">'+
+          '<div style="background:var(--green-bg);border:1px solid var(--green-border);border-radius:var(--r);padding:10px;text-align:center"><div style="font-size:20px;font-weight:700;color:var(--green-dark)">'+cis.length+'</div><div style="font-size:10px;color:var(--green-dark)">Checked in</div></div>'+
+          '<div style="background:var(--red-bg);border:1px solid var(--red-border);border-radius:var(--r);padding:10px;text-align:center"><div style="font-size:20px;font-weight:700;color:var(--red-dark)">'+ns.length+'</div><div style="font-size:10px;color:var(--red-dark)">No-shows</div></div>'+
+          '<div style="background:#f4f5f7;border:1px solid var(--border);border-radius:var(--r);padding:10px;text-align:center"><div style="font-size:20px;font-weight:700">'+allB.length+'</div><div style="font-size:10px;color:var(--text3)">Total booked</div></div>'+
+        '</div>'+
+        (ns.length>0?'<div style="font-size:12px;font-weight:600;margin-bottom:6px;color:var(--red-dark)">Did not check in:</div>'+ns.map(function(b){return'<div style="padding:6px 10px;background:var(--red-bg);border:1px solid var(--red-border);border-radius:var(--r);margin-bottom:4px;font-size:12px"><strong>'+b.userName+'</strong> &middot; Desk '+deskLabel(b.resourceId)+'</div>'}).join(''):'')+
+        (cis.length>0?'<div style="font-size:12px;font-weight:600;margin-bottom:6px;color:var(--green-dark);margin-top:10px">Checked in:</div>'+cis.map(function(c){return'<div style="padding:5px 10px;background:var(--green-bg);border:1px solid var(--green-border);border-radius:var(--r);margin-bottom:3px;font-size:12px;color:var(--green-dark)"><strong>'+c.userName+'</strong> &middot; Desk '+deskLabel(c.deskId)+' &middot; '+c.at+'</div>'}).join(''):'')
+      )+'</div>';
+  })();
+  var html_um='<div class="card" style="margin-top:16px">'+
+    '<div class="card-header" style="cursor:pointer;display:flex;justify-content:space-between;align-items:center" id="um-toggle">'+
+    '<div class="card-title">&#128101; User Management</div>'+
+    '<span id="um-chevron" style="font-size:12px;color:var(--text3)">&#9660; Show</span>'+
+    '</div>'+
+    '<div id="um-body" style="display:none">'+
+    '<div style="display:grid;grid-template-columns:1fr 1fr 1fr auto;gap:8px;align-items:end;margin-bottom:14px">'+
+      '<div><div style="font-size:10px;color:var(--text3);margin-bottom:3px">Full name</div>'+
+        '<input id="um-name" placeholder="John Smith" style="width:100%;padding:8px;border:1px solid var(--border);border-radius:var(--r);font-size:12px;font-family:inherit"/></div>'+
+      '<div><div style="font-size:10px;color:var(--text3);margin-bottom:3px">Email</div>'+
+        '<input id="um-email" placeholder="john@gig.com" style="width:100%;padding:8px;border:1px solid var(--border);border-radius:var(--r);font-size:12px;font-family:inherit"/></div>'+
+      '<div><div style="font-size:10px;color:var(--text3);margin-bottom:3px">Office</div>'+
+        '<select id="um-office" style="width:100%;padding:8px;border:1px solid var(--border);border-radius:var(--r);font-size:12px;font-family:inherit;background:var(--bg)">'+
+          '<option>Marbella</option><option>Malta</option><option>Madrid</option><option>Barcelona</option><option>Toulouse</option>'+
+        '</select></div>'+
+      '<div style="display:flex;gap:6px;align-items:center">'+
+        '<label style="display:flex;align-items:center;gap:4px;font-size:12px;cursor:pointer"><input type="checkbox" id="um-admin"/> Admin</label>'+
+        '<button id="um-add" class="btn-primary">+ Add</button>'+
+      '</div>'+
+    '</div>'+
+    '<div style="display:flex;gap:8px;align-items:center;margin-bottom:8px">'+
+      '<input id="um-search" placeholder="Search name, email or office..." style="flex:1;padding:7px 10px;border:1px solid var(--border);border-radius:var(--r);font-size:12px;font-family:inherit"/>'+
+      '<span style="font-size:11px;color:var(--text3)">'+DEMO_USERS.length+' users</span>'+
+    '</div>'+
+    '<div style="max-height:400px;overflow-y:auto;border:1px solid var(--border);border-radius:var(--r)">'+
+      '<table id="um-table" style="width:100%;border-collapse:collapse;font-size:12px">'+
+        '<thead><tr style="background:var(--bg2)">'+
+          '<th class="um-sort" data-col="name" style="padding:8px;text-align:left;border-bottom:1px solid var(--border);cursor:pointer">Name ↕</th>'+
+          '<th class="um-sort" data-col="email" style="padding:8px;text-align:left;border-bottom:1px solid var(--border);cursor:pointer">Email ↕</th>'+
+          '<th class="um-sort" data-col="office" style="padding:8px;text-align:left;border-bottom:1px solid var(--border);cursor:pointer">Office ↕</th>'+
+          '<th style="padding:8px;text-align:center;border-bottom:1px solid var(--border)">Admin</th>'+
+          '<th style="padding:8px;border-bottom:1px solid var(--border)"></th>'+
+        '</tr></thead>'+
+        '<tbody>'+
+          DEMO_USERS.map(function(u){
+            var isAdmin=ADMINS.indexOf(u.email)>-1;
+            return '<tr style="border-bottom:1px solid var(--border)">'+
+              '<td style="padding:8px">'+u.name+'</td>'+
+              '<td style="padding:8px;color:var(--text2);font-size:11px">'+u.email+'</td>'+
+              '<td style="padding:8px">'+u.office+'</td>'+
+              '<td style="padding:8px;text-align:center">'+
+                (isAdmin?
+                  '<button class="um-admin-toggle" data-uid="'+u.id+'" data-email="'+u.email+'" data-isadmin="1" style="font-size:11px;background:var(--green-bg);color:var(--green-dark);border:1px solid var(--green-border);border-radius:20px;padding:2px 10px;cursor:pointer;font-weight:600">✓ Admin</button>':
+                  '<button class="um-admin-toggle" data-uid="'+u.id+'" data-email="'+u.email+'" data-isadmin="0" style="font-size:11px;background:var(--bg);color:var(--text3);border:1px solid var(--border);border-radius:20px;padding:2px 10px;cursor:pointer">Make admin</button>')+
+              '</td>'+
+              '<td style="padding:8px;text-align:center"><button class="um-del" data-uid="'+u.id+'" style="background:none;border:none;color:var(--red);cursor:pointer;font-size:16px">&#215;</button></td>'+
+            '</tr>';
+          }).join('')+
+        '</tbody>'+
+      '</table>'+
+    '</div>'+
+  '</div>';
+
+  var html_report=(function(){
+    var allCI=CI.all();
+    var allB=(BK._ad||[]).filter(function(b){return b.type==='desk'});
+    if(allB.length===0&&allCI.length===0)return '<div class="card"><div class="card-header"><div class="card-title">📊 Attendance Report</div></div><div style="font-size:13px;color:var(--text3);padding:12px 0">No data yet. Bookings and check-ins will appear here.</div></div>';
+    function toStr(d){var y=d.getFullYear(),m=d.getMonth()+1,dd=d.getDate();return y+'-'+(m<10?'0':'')+m+'-'+(dd<10?'0':'')+dd;}
+    var weeks=[];
+    var today=new Date();today.setHours(0,0,0,0);
+    var dow=today.getDay();var daysToMon=dow===0?6:dow-1;
+    for(var w=0;w<4;w++){
+      var mon=new Date(today);mon.setDate(today.getDate()-daysToMon-(w*7));
+      var days=[];
+      for(var d=0;d<5;d++){var day=new Date(mon);day.setDate(mon.getDate()+d);days.push(toStr(day));}
+      var fri=new Date(mon);fri.setDate(mon.getDate()+4);
+      weeks.push({range:mon.toLocaleDateString('en-GB',{day:'numeric',month:'short'})+' – '+fri.toLocaleDateString('en-GB',{day:'numeric',month:'short'}),days:days});
+    }
+    weeks.reverse();
+    var weekStats=weeks.map(function(week){
+      var todayStr=toStr(today);
+      var pastDays=week.days.filter(function(d){return d<todayStr});
+      var booked=allB.filter(function(b){return week.days.indexOf(b.date)>-1});
+      var bookedPast=allB.filter(function(b){return pastDays.indexOf(b.date)>-1});
+      var checkedIn=allCI.filter(function(x){return week.days.indexOf(x.date)>-1});
+      var noShows=bookedPast.filter(function(b){
+        // exclude fixed desk holders from no-show count
+        var offCfg=OFFICES[b.office];
+        var isFixed=offCfg&&offCfg.fixedDesks&&offCfg.fixedDesks[b.resourceId];
+        if(isFixed)return false;
+        return !checkedIn.some(function(x){return x.deskId===b.resourceId&&x.date===b.date&&x.userId===b.userId});
+      });
+      return {week:week,booked:booked,checkedIn:checkedIn,noShows:noShows};
+    });
+    var totalBooked=weekStats.reduce(function(s,x){return s+x.booked.length},0);
+    var totalCI=weekStats.reduce(function(s,x){return s+x.checkedIn.length},0);
+    var totalNS=weekStats.reduce(function(s,x){return s+x.noShows.length},0);
+    var nsRate=totalBooked>0?Math.round(totalNS/totalBooked*100):0;
+    var html='<div class="card"><div class="card-header" style="flex-wrap:wrap;gap:8px">'+
+      '<div class="card-title">📊 Attendance Report — No-shows per week</div>'+
+      '<select id="rpt-office" style="margin-left:auto;padding:5px 10px;border:1px solid var(--border);border-radius:var(--r);font-size:12px;font-family:inherit;background:var(--bg)">'+
+        '<option value="">All offices</option>'+
+        Object.keys(OFFICES).map(function(o){return'<option value="'+o+'">'+o+'</option>'}).join('')+
+      '</select></div>';
+    html+='<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:16px">'+
+      '<div style="background:var(--bg);border:1px solid var(--border);border-radius:var(--r);padding:10px;text-align:center"><div style="font-size:20px;font-weight:700">'+totalBooked+'</div><div style="font-size:10px;color:var(--text3);margin-top:2px">Bookings (4w)</div></div>'+
+      '<div style="background:var(--green-bg);border:1px solid var(--green-border);border-radius:var(--r);padding:10px;text-align:center"><div style="font-size:20px;font-weight:700;color:var(--green-dark)">'+totalCI+'</div><div style="font-size:10px;color:var(--green-dark);margin-top:2px">Check-ins (4w)</div></div>'+
+      '<div style="background:var(--red-bg);border:1px solid var(--red-border);border-radius:var(--r);padding:10px;text-align:center"><div style="font-size:20px;font-weight:700;color:var(--red-dark)">'+totalNS+'</div><div style="font-size:10px;color:var(--red-dark);margin-top:2px">No-shows (4w)</div></div>'+
+      '<div style="background:var(--amber-bg);border:1px solid var(--amber-border);border-radius:var(--r);padding:10px;text-align:center"><div style="font-size:20px;font-weight:700;color:var(--amber)">'+nsRate+'%</div><div style="font-size:10px;color:var(--amber);margin-top:2px">No-show rate</div></div>'+
+    '</div>';
+    html+='<div style="display:flex;flex-direction:column;gap:10px" id="rpt-weeks">';
+    weekStats.forEach(function(ws,wi){
+      var booked=ws.booked.length,ci=ws.checkedIn.length,ns=ws.noShows.length;
+      var rate=booked>0?Math.round(ns/booked*100):0;
+      var hasNS=ns>0;
+      var isExpanded=(wi===weekStats.length-1);
+      html+='<div style="border:1px solid '+(hasNS?'var(--red-border)':'var(--border)')+';background:'+(hasNS?'var(--red-bg)':'var(--surface)')+';border-radius:var(--r-lg);padding:14px 18px">';
+      html+='<div class="rpt-week-hdr" data-wi="'+wi+'" style="cursor:pointer;display:flex;align-items:center;gap:10px;user-select:none">'+
+        '<div style="flex:1;font-size:13px;font-weight:600;color:'+(hasNS?'var(--red-dark)':'var(--text)')+'">'+ws.week.range+'</div>'+
+        '<div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">'+
+          '<span style="background:var(--bg);border:1px solid var(--border);border-radius:4px;padding:2px 8px;font-size:11px">'+booked+' booked</span>'+
+          '<span style="background:var(--green-bg);border:1px solid var(--green-border);border-radius:4px;padding:2px 8px;font-size:11px;color:var(--green-dark)">'+ci+' in</span>'+
+          (hasNS?'<span style="background:var(--red-bg);border:1px solid var(--red-border);border-radius:4px;padding:2px 8px;font-size:11px;color:var(--red-dark);font-weight:600">'+ns+' no-shows ('+rate+'%)</span>':
+                 (booked>0?'<span style="color:var(--green-dark);font-size:11px;font-weight:600">✓ all in</span>':''))+
+        '</div>'+
+        '<span class="rpt-chevron" data-wi="'+wi+'" style="font-size:11px;color:var(--text3)">'+(isExpanded?'▲':'▼')+'</span>'+
+      '</div>';
+      if(booked>0){
+        html+='<div style="margin-top:8px;height:4px;background:var(--green-bg);border-radius:3px;overflow:hidden">'+
+          '<div style="height:100%;width:'+rate+'%;background:var(--red);border-radius:3px"></div></div>';
+      }
+      html+='<div class="rpt-week-body" data-wi="'+wi+'" style="display:'+(isExpanded?'block':'none')+'"><div style="margin-top:12px">';
+      if(booked===0){
+        html+='<div style="font-size:12px;color:var(--text3)">No bookings this week.</div>';
+      } else if(!hasNS){
+        html+='<div style="font-size:12px;color:var(--green-dark);font-weight:500">✓ Everyone who booked checked in.</div>';
+      } else {
+        var byOffice={};
+        ws.noShows.forEach(function(b){if(!byOffice[b.office])byOffice[b.office]=[];byOffice[b.office].push(b);});
+        Object.keys(byOffice).forEach(function(oName){
+          var oNS=byOffice[oName];
+          html+='<div style="margin-bottom:10px"><div style="font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.05em;margin-bottom:5px">'+oName+' — '+oNS.length+' no-show'+(oNS.length===1?'':'s')+'</div>'+
+            oNS.map(function(b){
+              var dayLabel=new Date(b.date+'T12:00:00').toLocaleDateString('en-GB',{weekday:'short',day:'numeric',month:'short'});
+              var initials=(b.userName||'?').split(' ').map(function(w){return w[0]||''}).slice(0,2).join('').toUpperCase();
+              return '<div style="display:flex;align-items:center;gap:8px;padding:6px 10px;background:rgba(255,255,255,0.75);border:1px solid var(--red-border);border-radius:var(--r);margin-bottom:4px">'+
+                '<div style="width:28px;height:28px;border-radius:50%;background:var(--red-bg);color:var(--red-dark);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;flex-shrink:0">'+initials+'</div>'+
+                '<div style="flex:1"><div style="font-size:12px;font-weight:600;color:var(--red-dark)">'+b.userName+'</div>'+
+                '<div style="font-size:10px;color:var(--red)">'+dayLabel+' &middot; Desk '+deskLabel(b.resourceId)+'</div></div></div>';
+            }).join('')+'</div>';
+        });
+      }
+      if(ci>0){
+        html+='<details style="margin-top:4px"><summary style="font-size:11px;color:var(--green-dark);cursor:pointer;font-weight:500">▸ '+ci+' check-in'+(ci===1?'':'s')+' this week</summary>'+
+          '<div style="display:flex;flex-wrap:wrap;gap:4px;margin-top:6px">'+
+          ws.checkedIn.map(function(c){return'<span style="font-size:11px;background:var(--green-bg);border:1px solid var(--green-border);color:var(--green-dark);border-radius:4px;padding:2px 8px">'+c.userName+'</span>';}).join('')+
+          '</div></details>';
+      }
+      html+='</div></div></div>';
+    });
+    html+='</div></div>';
+    return html;
+  })();
+
+  var html_active_users='<div class="card" style="margin-top:16px">'+'<div class="card-header" style="cursor:pointer;display:flex;justify-content:space-between;align-items:center" id="au-toggle">'+'<div class="card-title">\ud83d\udc65 Active Users ('+DEMO_USERS.length+')</div>'+'<span id="au-chevron" style="font-size:12px;color:var(--text3)">&#9660; Show</span>'+'</div>'+'<div id="au-list" style="display:none">'+'<div style="display:flex;flex-direction:column;gap:4px">'+DEMO_USERS.map(function(u){return'<div style="display:flex;align-items:center;gap:8px;padding:7px 10px;border-radius:var(--r);border:1px solid var(--border)">'+'<div style="width:28px;height:28px;border-radius:50%;background:var(--green-bg);color:var(--green-dark);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700">'+u.initials+'</div>'+'<div style="flex:1"><div style="font-size:13px;font-weight:600">'+u.name+'</div></div>'+(ADMINS.includes(u.email)?'<span style="font-size:10px;background:var(--amber-bg);color:var(--amber);border:1px solid var(--amber-border);padding:2px 7px;border-radius:20px;font-weight:600">ADMIN</span>':'')+'</div>'}).join('')+'</div></div></div>';
+  return debugHtml+ra_orig+html_report+html_active_users+html_um;
+}
+function renderModal(){
+  var m=S.modal,date=ds(S.dayOffset);
+  var labels={desk:'Desk',room:'Meeting room',parking:'Parking spot'},lbl=labels[m.type];
+  var existing=m.type==='room'?BK.isBooked(S.office,date,'room',m.id,m.slot):BK.isBooked(S.office,date,m.type,m.id);
+  var cfg=OFFICES[S.office];
+  var fixedName=cfg.fixedDesks&&cfg.fixedDesks[m.id]||'';
+  var userWords=S.user.name.toLowerCase().split(' ');
+  var fixedWords=fixedName.toLowerCase().split(' ');
+  var isMyFixed=m.type==='desk'&&fixedName.length>0&&userWords.some(function(w){return w.length>2&&fixedWords.some(function(f){return f.indexOf(w)>-1||w.indexOf(f)>-1;});});
+  var isMine=(existing?.userId===S.user.id)||isMyFixed;
+  var isBooked=!!existing&&existing.userId!==S.user.id&&!isMyFixed;
+  var dateDisplay=new Date(date+'T12:00:00').toLocaleDateString('en-GB',{weekday:'long',day:'numeric',month:'long'});
+  return '<div class="modal-overlay" id="mo"><div class="modal">'+
+    '<h3>'+(isMine?'Your '+lbl.toLowerCase():isBooked?lbl+' occupied':'Book '+lbl.toLowerCase())+'</h3>'+
+    (m.type==='parking'?'<div style="background:#FEF9E7;border:1px solid #E8C97A;border-radius:var(--r);padding:8px 12px;font-size:12px;color:#8A6A00;margin-bottom:8px">🚗 You are booking <strong>parking access</strong> for the day, not a specific spot.</div>':'')+
+    '<div class="modal-sub">'+deskLabel(m.id)+(m.slot?' &middot; '+m.slot:'')+' &middot; '+S.office+' &middot; '+dateDisplay+'</div>'+
+    (isMine?'<div class="modal-info modal-info-green">\u2713 You have this '+lbl.toLowerCase()+' booked.</div>':'')+
+    (isBooked?'<div class="modal-info modal-info-red">Booked by '+(existing.userName||'someone')+'</div>':'')+
+    (!existing&&m.type==='room'?
+      '<div class="modal-row"><label>Duration</label><select id="mDur"><option value="30">30 min</option><option value="60" selected>1 hour</option><option value="120">2 hours</option></select></div>'+
+      '<div class="modal-row"><label>Meeting title (optional)</label><input id="mTit" type="text" placeholder="e.g. Team standup"/></div>'
+    :'')+
+    '<div class="modal-actions">'+
+      '<button class="btn-secondary" id="mCls">Close</button>'+
+      (isMine&&existing?'<button class="btn-danger" id="mCan" data-bid="'+existing.id+'">Cancel booking</button>':'')+
+      ((isMine||isMyFixed)&&m.type==='desk'&&!CI.get(S.office,m.id,date)?'<button class="btn-primary" id="mCI">✓ Check in</button>':'')+
+      ((isMine||isMyFixed)&&m.type==='desk'&&CI.get(S.office,m.id,date)?'<span style="color:var(--green);font-size:13px">✓ Checked in</span><button class="btn-secondary" id="mCO" style="margin-left:8px">Check out</button>':'')+
+      (!existing&&!isMyFixed&&m.type!=='room'?'<button class="btn-primary" id="mCnf">Book</button>':'')+
+    '</div></div></div>';
+}
+
+// ─── BIND ALL ───
+function bindAll(){
+  // Nav
+  document.querySelectorAll('.nav-btn[data-view]').forEach(function(b){b.addEventListener('click',function(){setState({view:b.dataset.view,modal:null,editMode:false})})});
+  document.querySelectorAll('.office-btn[data-office]').forEach(function(b){b.addEventListener('click',function(){setState({office:b.dataset.office,modal:null,editMode:false})})});
+  document.getElementById('logout-btn')?.addEventListener('click',function(){
+    DB.set('user',null);
+    Auth.signOut();
+  });
+  document.getElementById('today-btn')?.addEventListener('click',function(){setState({dayOffset:0})});
+  // Calendar
+  document.querySelectorAll('[data-calview]').forEach(function(b){b.addEventListener('click',function(){setState({calView:b.dataset.calview})})});
+  document.getElementById('cal-prev')?.addEventListener('click',function(){if(S.calView==='week')setState({calWeekStart:S.calWeekStart-1});else setState({calMonthOffset:S.calMonthOffset-1})});
+  document.getElementById('cal-next')?.addEventListener('click',function(){if(S.calView==='week')setState({calWeekStart:S.calWeekStart+1});else setState({calMonthOffset:S.calMonthOffset+1})});
+  document.getElementById('cal-today')?.addEventListener('click',function(){if(S.calView==='week')setState({calWeekStart:0});else setState({calMonthOffset:0})});
+  // User management
+  var umAdd=document.getElementById('um-add');
+  if(umAdd){
+    umAdd.addEventListener('click',async function(){
+      var name=document.getElementById('um-name').value.trim();
+      var email=document.getElementById('um-email').value.trim().toLowerCase();
+      var office=document.getElementById('um-office').value;
+      var isAdminCb=document.getElementById('um-admin').checked;
+      if(!name||!email){toast('Name and email required','error');return;}
+      if(DEMO_USERS.find(function(u){return u.email===email})){toast('User already exists','error');return;}
+      var parts=name.split(' ');
+      var initials=parts.map(function(p){return p[0]}).join('').toUpperCase().slice(0,2);
+      var uid='u_'+email.replace(/[@.\-]/g,'_');
+      await USERS.upsert({id:uid,name:name,email:email,initials:initials,office:office});
+      if(isAdminCb) await USERS.setAdmin(email,true);
+      await USERS.load();
+      toast(name+' added ✓');render();
+    });
+  }
+  document.querySelectorAll('.um-del').forEach(function(btn){
+    btn.addEventListener('click',async function(){
+      var uid=btn.dataset.uid;
+      var idx=DEMO_USERS.findIndex(function(u){return u.id===uid});
+      if(idx>-1){
+        var name=DEMO_USERS[idx].name;
+        await USERS.remove(uid);
+        toast(name+' removed');render();
+      }
+    });
+  });
+  document.querySelectorAll('.um-admin-toggle').forEach(function(btn){
+    btn.addEventListener('click',async function(){
+      var email=btn.dataset.email;
+      var isAdmin=btn.dataset.isadmin==='1';
+      if(isAdmin){
+        var ai=ADMINS.indexOf(email);
+        if(ai>-1)ADMINS.splice(ai,1);
+        await USERS.setAdmin(email,false);
+        toast('Admin removed');
+      } else {
+        if(ADMINS.indexOf(email)<0)ADMINS.push(email);
+        await USERS.setAdmin(email,true);
+        toast('Admin granted ✓');
+      }
+      render();
+    });
+  });
+  // Sort user table
+  var umSort={col:'name',asc:true};
+  document.querySelectorAll('.um-sort').forEach(function(th){
+    th.addEventListener('click',function(){
+      var col=th.dataset.col;
+      if(umSort.col===col) umSort.asc=!umSort.asc;
+      else{umSort.col=col;umSort.asc=true;}
+      DEMO_USERS.sort(function(a,b){
+        var av=(a[col]||'').toLowerCase(),bv=(b[col]||'').toLowerCase();
+        return umSort.asc?(av>bv?1:-1):(av<bv?1:-1);
+      });
+      render();
+    });
+  });
+  // Search user table
+  var umSearchEl=document.getElementById('um-search');
+  if(umSearchEl){
+    umSearchEl.addEventListener('input',function(){
+      var q=umSearchEl.value.toLowerCase();
+      document.querySelectorAll('#um-table tbody tr').forEach(function(tr){
+        tr.style.display=tr.textContent.toLowerCase().includes(q)?'':'none';
+      });
+    });
+  }
+  // Office selector in sidebar
+  var officeSelector=document.getElementById('office-selector');
+  var officeSelect=document.getElementById('office-select');
+  if(officeSelector&&officeSelect){
+    officeSelector.addEventListener('click',function(){
+      officeSelect.style.display=officeSelect.style.display==='none'?'block':'none';
+    });
+    officeSelect.addEventListener('change',function(){
+      setState({office:officeSelect.value});
+      officeSelect.style.display='none';
+    });
+  }
+  document.querySelectorAll('.malta-floor-btn').forEach(function(b){
+    b.addEventListener('click',function(){setState({maltaFloor:b.dataset.floor})});
+  });
+  // User management
+  var umAdd=document.getElementById('um-add');
+  if(umAdd){
+    umAdd.addEventListener('click',async function(){
+      var name=document.getElementById('um-name').value.trim();
+      var email=document.getElementById('um-email').value.trim().toLowerCase();
+      var office=document.getElementById('um-office').value;
+      var isAdminCb=document.getElementById('um-admin').checked;
+      if(!name||!email){toast('Name and email required','error');return;}
+      if(DEMO_USERS.find(function(u){return u.email===email})){toast('User already exists','error');return;}
+      var parts=name.split(' ');
+      var initials=parts.map(function(p){return p[0]}).join('').toUpperCase().slice(0,2);
+      var uid='u_'+email.replace(/[@.\-]/g,'_');
+      await USERS.upsert({id:uid,name:name,email:email,initials:initials,office:office});
+      if(isAdminCb) await USERS.setAdmin(email,true);
+      await USERS.load();
+      toast(name+' added ✓');render();
+    });
+  }
+  document.querySelectorAll('.um-del').forEach(function(btn){
+    btn.addEventListener('click',async function(){
+      var uid=btn.dataset.uid;
+      var idx=DEMO_USERS.findIndex(function(u){return u.id===uid});
+      if(idx>-1){
+        var name=DEMO_USERS[idx].name;
+        await USERS.remove(uid);
+        toast(name+' removed');render();
+      }
+    });
+  });
+  // Sort user table
+  var umSort={col:'name',asc:true};
+  document.querySelectorAll('.um-sort').forEach(function(th){
+    th.addEventListener('click',function(){
+      var col=th.dataset.col;
+      if(umSort.col===col) umSort.asc=!umSort.asc;
+      else{umSort.col=col;umSort.asc=true;}
+      DEMO_USERS.sort(function(a,b){
+        var av=(a[col]||'').toLowerCase(),bv=(b[col]||'').toLowerCase();
+        return umSort.asc?(av>bv?1:-1):(av<bv?1:-1);
+      });
+      render();
+    });
+  });
+  // Search user table
+  var umSearchEl=document.getElementById('um-search');
+  if(umSearchEl){
+    umSearchEl.addEventListener('input',function(){
+      var q=umSearchEl.value.toLowerCase();
+      document.querySelectorAll('#um-table tbody tr').forEach(function(tr){
+        tr.style.display=tr.textContent.toLowerCase().includes(q)?'':'none';
+      });
+    });
+  }
+  // Office selector in sidebar
+  var officeSelector=document.getElementById('office-selector');
+  var officeSelect=document.getElementById('office-select');
+  if(officeSelector&&officeSelect){
+    officeSelector.addEventListener('click',function(){
+      officeSelect.style.display=officeSelect.style.display==='none'?'block':'none';
+    });
+    officeSelect.addEventListener('change',function(){
+      setState({office:officeSelect.value});
+      officeSelect.style.display='none';
+    });
+  }
+  document.querySelectorAll('.malta-floor-btn').forEach(function(b){
+    b.addEventListener('click',function(){setState({maltaFloor:b.dataset.floor})});
+  });
+  document.querySelectorAll('[data-dayoffset]').forEach(function(el){el.addEventListener('click',function(){setState({dayOffset:parseInt(el.dataset.dayoffset)})})});
+  // Desks
+  // Delegated touch for desks
+  var mapCanvas=document.querySelector('.map-canvas');
+  if(mapCanvas){
+    mapCanvas.addEventListener('touchstart',function(e){
+      var desk=e.target.closest('.desk[data-desk]');
+      if(desk)desk._tx=e.touches[0].clientX;
+    },{passive:true});
+    mapCanvas.addEventListener('touchend',function(e){
+      var desk=e.target.closest('.desk[data-desk]');
+      if(desk&&Math.abs(e.changedTouches[0].clientX-(desk._tx||0))<10)desk.click();
+    },{passive:true});
+  }
+  document.querySelectorAll('.desk[data-desk]').forEach(function(el){
+  el.addEventListener('click',function(){
+    if(S.editMode)return;
+    var id=el.dataset.desk,cfg=OFFICES[S.office],date=ds(S.dayOffset);
+    var fix=!!cfg.fixedDesks[id],freed=fix&&FF.isFree(S.office,id,date);
+    var rec=!fix&&!!RF.person(S.office,id,date)&&!FF.isFree(S.office,id,date);
+    var fixedName=cfg.fixedDesks[id]||'';
+    var isMyFixed=fix&&fixedName.length>0&&(
+      fixedName===S.user.name||
+      fixedName.split(' ')[0]===S.user.name.split(' ')[0]
+    );
+    var deskEl=el;
+    var isMineClass=deskEl.classList.contains('desk-mine');
+    if(fix&&!freed&&!isMyFixed&&!isMineClass)return;
+    if(rec&&!isMyFixed&&!isMineClass)return;
+    setState({modal:{type:'desk',id}});
+  })});
+  // Mobile map touch scroll
+
+  // User Management collapsible
+  document.getElementById('um-toggle')&&document.getElementById('um-toggle').addEventListener('click',function(){
+    var body=document.getElementById('um-body');
+    var chevron=document.getElementById('um-chevron');
+    if(body.style.display==='none'){body.style.display='block';chevron.innerHTML='&#9650; Hide';}
+    else{body.style.display='none';chevron.innerHTML='&#9660; Show';}
+  });
+  // Debug toggle
+  document.getElementById('debug-toggle')&&document.getElementById('debug-toggle').addEventListener('click',function(){
+    var body=document.getElementById('debug-body');var chev=document.getElementById('debug-chev');
+    if(!body)return;var open=body.style.display!=='none';
+    body.style.display=open?'none':'block';if(chev)chev.textContent=open?'▼ Show':'▲ Hide';
+  });
+  // Report week toggles
+  document.querySelectorAll('.rpt-week-hdr').forEach(function(hdr){
+    hdr.addEventListener('click',function(){
+      var wi=hdr.dataset.wi;
+      var body=document.querySelector('.rpt-week-body[data-wi="'+wi+'"]');
+      var chev=document.querySelector('.rpt-chevron[data-wi="'+wi+'"]');
+      if(!body)return;var open=body.style.display!=='none';
+      body.style.display=open?'none':'block';if(chev)chev.textContent=open?'▼':'▲';
+    });
+  });
+  // Active users collapsible
+  document.getElementById('au-toggle')&&document.getElementById('au-toggle').addEventListener('click',function(){
+    var list=document.getElementById('au-list');
+    var chevron=document.getElementById('au-chevron');
+    if(list.style.display==='none'){list.style.display='block';chevron.innerHTML='&#9650; Hide';}
+    else{list.style.display='none';chevron.innerHTML='&#9660; Show';}
+  });
+  // Room slots
+  document.querySelectorAll('.slot[data-room]').forEach(function(el){el.addEventListener('click',function(){
+    // Room booking disabled - view only
+  })});
+  // Parking
+  document.querySelectorAll('.parking-spot[data-parking]').forEach(function(el){
+  el.addEventListener('touchend',function(e){e.preventDefault();if(!OFFICES[S.office].fixedParking[el.dataset.parking])setState({modal:{type:'parking',id:el.dataset.parking}});});
+  el.addEventListener('click',function(){
+    if(!OFFICES[S.office].fixedParking[el.dataset.parking])setState({modal:{type:'parking',id:el.dataset.parking}});
+  })});
+  // Cancel
+  document.querySelectorAll('[data-cancel]').forEach(function(btn){btn.addEventListener('click',function(){
+    btn.disabled=true;btn.textContent='...';
+    BK.remove(btn.dataset.cancel).then(function(){toast('Booking cancelled');setState({modal:null})}).catch(function(e){toast(e.message||'Error','error');btn.disabled=false;btn.textContent='Cancel'});
+  })});
+  // Check-in/out
+  document.getElementById('checkin-btn')?.addEventListener('click',async function(e){
+    var desk=e.currentTarget.dataset.desk,date=e.currentTarget.dataset.date;
+    await CI.add(S.office,desk,date,S.user.id,S.user.name);toast('Checked in at desk '+deskLabel(desk)+' \u2713');render();
+  });
+  document.getElementById('checkout-btn')?.addEventListener('click',async function(e){
+    await CI.remove(S.office,e.currentTarget.dataset.desk,e.currentTarget.dataset.date,S.user.id);toast('Checked out');render();
+  });
+  // Modal
+  if(S.modal){
+    document.getElementById('mo')?.addEventListener('click',function(e){if(e.target.id==='mo')setState({modal:null})});
+    document.getElementById('mCls')?.addEventListener('click',function(){setState({modal:null})});
+    document.getElementById('mCI')?.addEventListener('click',async function(){
+      await CI.add(S.office,S.modal.id,ds(S.dayOffset),S.user.id,S.user.name);
+      setState({modal:null});toast('Checked in ✓');
+    });
+    document.getElementById('mCO')?.addEventListener('click',async function(){
+      await CI.remove(S.office,S.modal.id,ds(S.dayOffset),S.user.id);
+      setState({modal:null});toast('Checked out');
+    });
+    document.getElementById('mCnf')?.addEventListener('click',function(){
+      var m=S.modal,date=ds(S.dayOffset);
+      if(m.type==='desk'){var ex=BK.forOD(S.office,date).find(function(b){return b.type==='desk'&&b.userId===S.user.id});if(ex){toast('You already have a desk booked today','error');return}}
+      if(m.type==='parking'){var ex=BK.forOD(S.office,date).find(function(b){return b.type==='parking'&&b.userId===S.user.id});if(ex){toast('You already have a parking spot today','error');return}}
+      var btn=document.getElementById('mCnf');btn.disabled=true;btn.textContent='Booking...';
+      var b={office:S.office,type:m.type,resourceId:m.id,date:date,userId:S.user.id,userName:S.user.name,userInitials:S.user.initials,
+        roomSlot:m.slot||null,
+        roomTitle:m.type==='room'?(document.getElementById('mTit')?.value||null):null,
+        roomDuration:m.type==='room'?(parseInt(document.getElementById('mDur')?.value)||60):null};
+      BK.add(b).then(function(){toast((m.type==='desk'?'Desk':m.type==='room'?'Room':'Parking spot')+' booked!');setState({modal:null})}).catch(function(e){toast(e.message||'Error','error');btn.disabled=false;btn.textContent='Book'});
+    });
+    document.getElementById('mCan')?.addEventListener('click',function(e){
+      var btn=e.currentTarget;btn.disabled=true;btn.textContent='Cancelling...';
+      BK.remove(btn.dataset.bid).then(function(){toast('Booking cancelled');setState({modal:null})}).catch(function(err){toast(err.message||'Error','error');btn.disabled=false;btn.textContent='Cancel booking'});
+    });
+  }
+  // Admin
+  document.getElementById('aFb')?.addEventListener('click',async function(){
+    var sel=document.getElementById('aDs')?.value,date=document.getElementById('aDt')?.value;
+    if(!sel||!date)return;var parts=sel.split('|');
+    await FF.add(parts[0],parts[1],date);toast('Desk released for '+fmtD(date));render();
+  });
+  document.querySelectorAll('.aUr').forEach(function(btn){btn.addEventListener('click',async function(){
+    await FF.remove(btn.dataset.o,btn.dataset.d,btn.dataset.dt);
+    var booked=BK.isBooked(btn.dataset.o,btn.dataset.dt,'desk',btn.dataset.d);
+    if(booked)await BK.remove(booked.id);
+    toast('Desk returned to owner');render();
+  })});
+  document.getElementById('rfSave')?.addEventListener('click',function(){
+    var office=document.getElementById('rfOff')?.value;
+    var deskId=document.getElementById('rfDesk')?.value?.trim().toUpperCase();
+    var person=document.getElementById('rfPerson')?.value?.trim();
+    var days=[...document.querySelectorAll('#rfDays input:checked')].map(function(x){return parseInt(x.dataset.day)});
+    if(!office||!deskId||!person||!days.length){toast('Fill all fields and select at least one day','error');return}
+    RF.add({office,deskId,person,days}).then(()=>{toast('Recurring fixed desk saved \u2713');render();});
+  });
+  document.querySelectorAll('.rfRm').forEach(function(btn){btn.addEventListener('click',function(){
+    RF.remove(btn.dataset.office,btn.dataset.desk).then(()=>{toast('Removed');render();});
+  })});
+  // Map canvas
+  if(S.view==='map')bindCanvas(S.office);
+}
+
+// ═══ START ═══
+// Clear version cache on load
+if(DB.get('appver','')!=='v35'){
+  // Marbella
+  DB.set('mp_Marbella',{malaga:{x:470,y:0},linnea:{x:357,y:1},kitchen:{x:278,y:1},allhands:{x:0,y:177},lcluster:{x:435,y:32},ceo:{x:561,y:215},rcluster:{x:272,y:35},boardroom:{x:63,y:192},enter:{x:213,y:14}});
+  DB.set('rot_Marbella_boardroom',90);DB.set('rot_Marbella_allhands',90);DB.set('rot_Marbella_enter',90);
+  // Barcelona
+  DB.set('mp_Barcelona',{'bcn-exec':{x:112,y:376},'bcn-P1':{x:424,y:368},'bcn-entrance':{x:424,y:304},'bcn-kitchen':{x:424,y:240},'bcn-rest':{x:248,y:368},'bcn-B7':{x:248,y:68},'bcn-B8':{x:248,y:16},'bcn-B14':{x:48,y:64},'bcn-B13':{x:48,y:116},'bcn-B12':{x:48,y:168},'bcn-B9':{x:112,y:64},'bcn-B10':{x:112,y:116},'bcn-B11':{x:112,y:168},'bcn-B4':{x:352,y:64},'bcn-B5':{x:352,y:116},'bcn-B6':{x:352,y:168},'bcn-B3':{x:416,y:64},'bcn-B2':{x:416,y:116},'bcn-B1':{x:416,y:168}});
+  DB.set('el_Barcelona_meeting','Boardroom');
+  // Toulouse
+  DB.set('mp_Toulouse',{'toul-enter':{x:0,y:324},'toul-meet':{x:0,y:54},'toul-exec':{x:324,y:432},'toul-rest':{x:54,y:324},'toul-d-CTO':{x:324,y:162},'toul-d-KB':{x:432,y:432},'toul-d-AU':{x:486,y:432},'toul-d-BT':{x:540,y:432},'toul-d-T1':{x:216,y:54},'toul-d-T2':{x:216,y:108},'toul-d-T3':{x:216,y:162},'toul-d-T4':{x:270,y:54},'toul-d-T5':{x:270,y:108},'toul-d-T6':{x:270,y:162},'toul-d-T7':{x:432,y:54},'toul-d-T8':{x:432,y:108},'toul-d-T9':{x:432,y:162},'toul-d-T10':{x:486,y:54},'toul-d-T11':{x:486,y:108},'toul-d-T12':{x:486,y:162},'toul-d-T13':{x:756,y:54},'toul-d-T14':{x:756,y:108},'toul-d-T15':{x:756,y:162},'toul-d-T16':{x:810,y:54},'toul-d-T17':{x:810,y:108},'toul-d-T18':{x:810,y:162},'toul-d-T19':{x:918,y:54},'toul-d-T20':{x:918,y:108},'toul-d-T21':{x:918,y:162},'toul-d-T22':{x:972,y:54},'toul-d-T23':{x:972,y:108},'toul-d-T24':{x:972,y:162},'toul-d-T25':{x:324,y:270},'toul-d-T26':{x:324,y:324},'toul-d-T27':{x:486,y:270},'toul-d-T28':{x:486,y:324},'toul-d-T29':{x:702,y:324},'toul-d-T30':{x:702,y:378},'toul-d-T31':{x:702,y:432},'toul-d-T32':{x:810,y:270},'toul-d-T33':{x:810,y:378},'toul-d-T34':{x:810,y:432},'toul-d-T35':{x:918,y:270},'toul-d-T36':{x:972,y:270},'toul-d-T37':{x:918,y:324},'toul-d-T38':{x:972,y:324},'toul-d-T39':{x:918,y:432},'toul-d-T40':{x:972,y:432}});
+    DB.set('rot_Toulouse_toul-meet',90);DB.set('rot_Toulouse_toul-rest',90);DB.set('rot_Toulouse_toul-exec',90);DB.set('rot_Toulouse_toul-board',90);
+  // Toulouse2
+  DB.set('mp_Toulouse2',{'t2-enter':{x:4,y:4},'t2-meet':{x:92,y:4},'t2-exec':{x:220,y:4},'t2-rest':{x:348,y:4},'t2-d-CTO':{x:4,y:60},'t2-d-KB':{x:58,y:60},'t2-d-AU':{x:112,y:60},'t2-d-BT':{x:166,y:60},'t2-d-T1':{x:220,y:60},'t2-d-T2':{x:274,y:60},'t2-d-T3':{x:4,y:114},'t2-d-T4':{x:58,y:114},'t2-d-T5':{x:112,y:114},'t2-d-T6':{x:166,y:114},'t2-d-T7':{x:220,y:114},'t2-d-T8':{x:274,y:114},'t2-d-T9':{x:4,y:168},'t2-d-T10':{x:58,y:168},'t2-d-T11':{x:112,y:168},'t2-d-T12':{x:166,y:168},'t2-d-T13':{x:220,y:168},'t2-d-T14':{x:274,y:168},'t2-d-T15':{x:4,y:222},'t2-d-T16':{x:58,y:222},'t2-d-T17':{x:112,y:222},'t2-d-T18':{x:166,y:222},'t2-d-T19':{x:220,y:222},'t2-d-T20':{x:274,y:222},'t2-d-T21':{x:4,y:276},'t2-d-T22':{x:58,y:276},'t2-d-T23':{x:112,y:276},'t2-d-T24':{x:166,y:276},'t2-d-T25':{x:220,y:276},'t2-d-T26':{x:274,y:276},'t2-d-T27':{x:4,y:330},'t2-d-T28':{x:58,y:330},'t2-d-T29':{x:112,y:330},'t2-d-T30':{x:166,y:330},'t2-d-T31':{x:220,y:330},'t2-d-T32':{x:274,y:330},'t2-d-T33':{x:4,y:384},'t2-d-T34':{x:58,y:384},'t2-d-T35':{x:112,y:384},'t2-d-T36':{x:166,y:384},'t2-d-T37':{x:220,y:384},'t2-d-T38':{x:274,y:384},'t2-d-T39':{x:4,y:438},'t2-d-T40':{x:58,y:438},'t2-d-T41':{x:112,y:438},'t2-d-T42':{x:166,y:438}});
+  DB.set('rot_Toulouse2_t2-meet',90);DB.set('rot_Toulouse2_t2-rest',90);DB.set('rot_Toulouse2_t2-exec',90);
+  // Madrid
+  DB.set('mp_Madrid',{'mad-allhands':{x:5,y:77},'mad-os-lbl':{x:0,y:132},'mad-pb-lbl':{x:487,y:158},'mad-H1':{x:24,y:154},'mad-H2':{x:70,y:154},'mad-H3':{x:47,y:200},'mad-H4':{x:161,y:148},'mad-H6':{x:207,y:148},'mad-H5':{x:184,y:194},'mad-H7':{x:306,y:154},'mad-H8':{x:352,y:154},'mad-H9':{x:329,y:200},'mad-R1':{x:66,y:254},'mad-R2':{x:112,y:254},'mad-R3':{x:158,y:254},'mad-R4':{x:66,y:300},'mad-R5':{x:112,y:300},'mad-R6':{x:158,y:300},'mad-R7':{x:254,y:254},'mad-R8':{x:300,y:254},'mad-R9':{x:346,y:254},'mad-R10':{x:254,y:300},'mad-R11':{x:300,y:300},'mad-R12':{x:346,y:300},'mad-H11':{x:192,y:400},'mad-H12':{x:67,y:359},'mad-H10':{x:215,y:356},'mad-R13':{x:386,y:400},'mad-R14':{x:46,y:400},'mad-R15':{x:92,y:400},'mad-R16':{x:340,y:400},'mad-R17':{x:237,y:400},'mad-R18':{x:362,y:356},'mad-PB1':{x:505,y:196},'mad-PB2':{x:505,y:242},'mad-PB3':{x:505,y:288},'mad-PB4':{x:505,y:334}});
+  DB.set('el_Madrid_desk_R1','10');DB.set('el_Madrid_desk_R2','11');DB.set('el_Madrid_desk_R3','12');DB.set('el_Madrid_desk_R4','13');DB.set('el_Madrid_desk_R5','14');DB.set('el_Madrid_desk_R6','15');
+  DB.set('el_Madrid_desk_R7','16');DB.set('el_Madrid_desk_R8','17');DB.set('el_Madrid_desk_R9','18');DB.set('el_Madrid_desk_R10','19');DB.set('el_Madrid_desk_R11','20');DB.set('el_Madrid_desk_R12','21');
+  DB.set('el_Madrid_desk_R13','29');DB.set('el_Madrid_desk_R14','22');DB.set('el_Madrid_desk_R15','23');DB.set('el_Madrid_desk_R16','28');DB.set('el_Madrid_desk_R17','26');DB.set('el_Madrid_desk_R18','30');
+  DB.set('el_Madrid_desk_H1','1');DB.set('el_Madrid_desk_H2','2');DB.set('el_Madrid_desk_H3','3');DB.set('el_Madrid_desk_H4','4');DB.set('el_Madrid_desk_H5','5');DB.set('el_Madrid_desk_H6','6');
+  DB.set('el_Madrid_desk_H7','7');DB.set('el_Madrid_desk_H8','8');DB.set('el_Madrid_desk_H9','9');DB.set('el_Madrid_desk_H10','27');DB.set('el_Madrid_desk_H11','25');DB.set('el_Madrid_desk_H12','24');
+  DB.set('el_Madrid_desk_PB1','RETIRO');DB.set('el_Madrid_desk_PB2','G.VÍA');DB.set('el_Madrid_desk_PB3','CIBLES');DB.set('el_Madrid_desk_PB4','SOL');
+  DB.set('el_Madrid_boardroom','BOARDROOM');DB.set('el_Madrid_mr1','CASTELLANA');DB.set('el_Madrid_mr2','PLAZA MAYOR');DB.set('el_Madrid_mr3','LINNEA');
+  // Malta
+  DB.set('mp_Malta',{'malta-floors':{x:4,y:4},'malta-room-0':{x:218,y:21},'malta-room-1':{x:254,y:375},'malta-room-2':{x:252,y:423},'malta-room-3':{x:252,y:470},'malta-room-4':{x:403,y:474},'malta-room-5':{x:1054,y:394},'malta-room-6':{x:930,y:393},'malta-room-7':{x:589,y:462},'malta-l4-glbl-0':{x:280,y:100},'malta-l4-glbl-1':{x:959,y:177},'malta-l4-glbl-2':{x:732,y:406},'malta-l4-glbl-3':{x:556,y:361},'malta-l4-glbl-4':{x:850,y:215},'malta-l4-glbl-5':{x:720,y:330},'malta-l4-glbl-6':{x:315,y:310},'malta-l4-glbl-7':{x:720,y:215},'malta-l4-glbl-8':{x:840,y:10},'malta-l4-glbl-9':{x:30,y:160},'malta-l5-glbl-0':{x:47,y:186},'malta-l5-glbl-1':{x:178,y:187},'malta-l5-glbl-2':{x:394,y:101},'malta-l5-glbl-3':{x:537,y:310},'malta-l5-glbl-4':{x:678,y:189},'malta-l5-glbl-5':{x:566,y:174},'malta-l5-glbl-6':{x:878,y:0},'malta-l5-glbl-7':{x:815,y:138},'malta-l5-glbl-8':{x:684,y:219},'malta-l5-glbl-9':{x:848,y:204},'malta-l5-glbl-10':{x:117,y:78},'malta-d-L1':{x:149,y:25},'malta-d-L2':{x:209,y:25},'malta-d-L3':{x:209,y:75},'malta-d-L4':{x:269,y:75},'malta-d-L5':{x:269,y:25},'malta-d-L6':{x:149,y:75},'malta-d-L7':{x:125,y:326},'malta-d-L8':{x:430,y:40},'malta-d-L9':{x:175,y:276},'malta-d-L10':{x:480,y:40},'malta-d-L11':{x:527,y:232},'malta-d-L13':{x:530,y:40},'malta-d-L14':{x:1100,y:106},'malta-d-L15':{x:1050,y:106},'malta-d-L16':{x:1150,y:106},'malta-d-L17':{x:1000,y:106},'malta-d-L18':{x:430,y:90},'malta-d-L19':{x:209,y:125},'malta-d-L20':{x:149,y:175},'malta-d-L21':{x:209,y:175},'malta-d-L22':{x:269,y:175},'malta-d-L23':{x:1200,y:245},'malta-d-L25':{x:427,y:182},'malta-d-L26':{x:477,y:182},'malta-d-L27':{x:527,y:182},'malta-d-L28':{x:427,y:232},'malta-d-L29':{x:1050,y:195},'malta-d-L30':{x:1050,y:245},'malta-d-L31':{x:1100,y:195},'malta-d-L32':{x:1100,y:245},'malta-d-L33':{x:52,y:475},'malta-d-L34':{x:102,y:475},'malta-d-L35':{x:152,y:475},'malta-d-L36':{x:202,y:475},'malta-d-L37':{x:52,y:525},'malta-d-L38':{x:102,y:525},'malta-d-L39':{x:152,y:525},'malta-d-L40':{x:202,y:525},'malta-d-L41':{x:480,y:90},'malta-d-L42':{x:530,y:90},'malta-d-L43':{x:125,y:276},'malta-d-L44':{x:225,y:276},'malta-d-L45':{x:1150,y:195},'malta-d-L46':{x:1150,y:245},'malta-d-L47':{x:7,y:405},'malta-d-L48':{x:149,y:125},'malta-d-L49':{x:269,y:125},'malta-d-L51':{x:1200,y:195},'malta-d-L52':{x:175,y:326},'malta-d-L53':{x:675,y:70},'malta-d-L54':{x:725,y:70},'malta-d-L55':{x:775,y:70},'malta-d-L56':{x:825,y:70},'malta-d-L57':{x:675,y:120},'malta-d-L58':{x:725,y:120},'malta-d-L59':{x:775,y:120},'malta-d-L60':{x:825,y:120},'malta-d-L61':{x:891,y:96},'malta-d-L62':{x:673,y:0},'malta-d-L63':{x:1200,y:106},'malta-d-L64':{x:477,y:232},'malta-d-L65':{x:225,y:326},'malta-room-L5-0':{x:200,y:100},'malta-room-L5-1':{x:306,y:384},'malta-room-L5-2':{x:306,y:430},'malta-room-L5-3':{x:306,y:476},'malta-room-L5-4':{x:456,y:476},'malta-room-L4-0':{x:720,y:0},'malta-room-L4-1':{x:462,y:449},'malta-room-L4-2':{x:462,y:493},'malta-room-L4-3':{x:604,y:449},'malta-room-L4-4':{x:604,y:493},'malta-room-L4-5':{x:762,y:470},'malta-room-L4-6':{x:962,y:462},'malta-room-L4-7':{x:1092,y:462},'malta-rest':{x:1451,y:139},'malta-d-M1':{x:100,y:520},'malta-d-M2':{x:150,y:520},'malta-d-M3':{x:100,y:470},'malta-d-M4':{x:150,y:470},'malta-d-M5':{x:100,y:420},'malta-d-M6':{x:150,y:420},'malta-d-M7':{x:100,y:370},'malta-d-M8':{x:150,y:370},'malta-d-M9':{x:100,y:270},'malta-d-M10':{x:150,y:270},'malta-d-M11':{x:100,y:220},'malta-d-M12':{x:150,y:220},'malta-d-M13':{x:100,y:170},'malta-d-M14':{x:150,y:170},'malta-d-M15':{x:300,y:220},'malta-d-M16':{x:350,y:220},'malta-d-M17':{x:400,y:220},'malta-d-M18':{x:300,y:170},'malta-d-M19':{x:350,y:170},'malta-d-M20':{x:400,y:170},'malta-d-M21':{x:470,y:120},'malta-d-M22':{x:530,y:120},'malta-d-M23':{x:470,y:70},'malta-d-M24':{x:530,y:70},'malta-d-M25':{x:470,y:20},'malta-d-M26':{x:530,y:20},'malta-d-M27':{x:675,y:20},'malta-d-M28':{x:725,y:20},'malta-d-M29':{x:675,y:70},'malta-d-M30':{x:725,y:70},'malta-d-M33':{x:870,y:20},'malta-d-M34':{x:920,y:20},'malta-d-M35':{x:920,y:70},'malta-d-M36':{x:870,y:70},'malta-d-M37':{x:1040,y:70},'malta-d-M38':{x:1100,y:70},'malta-d-M39':{x:1040,y:20},'malta-d-M40':{x:1100,y:20},'malta-d-M41':{x:740,y:370},'malta-d-M42':{x:740,y:420},'malta-d-M43':{x:840,y:420},'malta-d-M44':{x:900,y:420},'malta-d-M45':{x:840,y:370},'malta-d-M46':{x:680,y:420},'malta-d-M47':{x:680,y:370},'malta-d-M48':{x:900,y:370},'malta-d-M49':{x:8,y:550},'malta-d-M50':{x:1140,y:220},'malta-d-M51':{x:1190,y:90},'malta-d-M52':{x:1250,y:90},'malta-d-M53':{x:830,y:270},'malta-d-M54':{x:890,y:270},'malta-d-M55':{x:950,y:270},'malta-d-M56':{x:1010,y:270},'malta-d-M57':{x:1070,y:270},'malta-d-M58':{x:830,y:330},'malta-d-M59':{x:890,y:330},'malta-d-M60':{x:950,y:330},'malta-d-M61':{x:100,y:370},'malta-d-M62':{x:160,y:370},'malta-d-M63':{x:220,y:370},'malta-d-M64':{x:280,y:370},'malta-d-M65':{x:100,y:430},'malta-d-M66':{x:160,y:430},'malta-d-M67':{x:220,y:430},'malta-d-M68':{x:280,y:430},'malta-d-M69':{x:1010,y:330},'malta-d-M70':{x:1070,y:330}});
+  DB.set('rot_Malta_l4-cyan',90);DB.set('rot_Malta_l4-brown',90);DB.set('rot_Malta_l4-purple',90);DB.set('rot_Malta_l5-black',90);DB.set('rot_Malta_l5-grey',90);DB.set('rot_Malta_l4-teal',90);
+  DB.set('el_Malta_desk_L47','Boban');DB.set('el_Malta_l4-cyan','Burgundy zone');DB.set('el_Malta_l4-pink','Yellow zone');
+  DB.set('el_Malta_l5-darkblue','Blue zone');
+  DB.set('el_Malta_room-0','Blue Grotto');DB.set('el_Malta_room-1','Mdina');DB.set('el_Malta_room-2','Comino');
+  DB.set('el_Malta_room-3','Filfla');DB.set('el_Malta_room-4','Citadella');
+  // Malta M desk labels
+  DB.set('el_Malta_desk_M1','5.1');DB.set('el_Malta_desk_M2','5.2');DB.set('el_Malta_desk_M3','5.3');DB.set('el_Malta_desk_M4','5.4');DB.set('el_Malta_desk_M5','5.5');DB.set('el_Malta_desk_M6','5.6');
+  DB.set('el_Malta_desk_M7','5.7');DB.set('el_Malta_desk_M8','5.8');DB.set('el_Malta_desk_M9','5.9');DB.set('el_Malta_desk_M10','5.10');
+  DB.set('el_Malta_desk_M11','5.11');DB.set('el_Malta_desk_M12','5.12');DB.set('el_Malta_desk_M13','5.13');DB.set('el_Malta_desk_M14','5.14');DB.set('el_Malta_desk_M15','5.15');
+  DB.set('el_Malta_desk_M16','5.16');DB.set('el_Malta_desk_M17','5.17');DB.set('el_Malta_desk_M18','5.18');DB.set('el_Malta_desk_M19','5.19');DB.set('el_Malta_desk_M20','5.20');
+  DB.set('el_Malta_desk_M21','5.21');DB.set('el_Malta_desk_M22','5.22');DB.set('el_Malta_desk_M23','5.23');DB.set('el_Malta_desk_M24','5.24');
+  DB.set('el_Malta_desk_M25','5.25');DB.set('el_Malta_desk_M26','5.26');DB.set('el_Malta_desk_M27','5.27');DB.set('el_Malta_desk_M28','5.28');
+  DB.set('el_Malta_desk_M29','5.29');DB.set('el_Malta_desk_M30','5.30');
+  DB.set('el_Malta_desk_M33','5.33');DB.set('el_Malta_desk_M34','5.34');DB.set('el_Malta_desk_M35','5.32');DB.set('el_Malta_desk_M36','5.31');
+  DB.set('el_Malta_desk_M37','5.37');DB.set('el_Malta_desk_M38','5.38');DB.set('el_Malta_desk_M39','5.35');DB.set('el_Malta_desk_M40','5.36');
+  DB.set('el_Malta_desk_M41','5.41');DB.set('el_Malta_desk_M42','5.42');DB.set('el_Malta_desk_M43','5.43');DB.set('el_Malta_desk_M44','5.44');
+  DB.set('el_Malta_desk_M45','5.45');DB.set('el_Malta_desk_M46','5.40');DB.set('el_Malta_desk_M47','5.39');DB.set('el_Malta_desk_M48','5.48');DB.set('el_Malta_desk_M49','5.59');DB.set('el_Malta_desk_M50','5.60');
+  DB.set('el_Malta_desk_M51','5.61');DB.set('el_Malta_desk_M52','5.62');
+  DB.set('el_Malta_desk_M53','5.45');DB.set('el_Malta_desk_M54','5.46');DB.set('el_Malta_desk_M55','5.47');DB.set('el_Malta_desk_M56','5.48');DB.set('el_Malta_desk_M57','5.49');
+  DB.set('el_Malta_desk_M58','5.50');DB.set('el_Malta_desk_M59','5.51');DB.set('el_Malta_desk_M60','5.52');DB.set('el_Malta_desk_M69','5.53');DB.set('el_Malta_desk_M70','5.54');
+  DB.set('el_Malta_desk_M61','5.5');DB.set('el_Malta_desk_M62','5.6');DB.set('el_Malta_desk_M63','5.7');DB.set('el_Malta_desk_M64','5.8');
+  DB.set('el_Malta_desk_M65','5.1');DB.set('el_Malta_desk_M66','5.2');DB.set('el_Malta_desk_M67','5.3');DB.set('el_Malta_desk_M68','5.4');
+    DB.set('el_Malta_desk_L1','4.1');
+  DB.set('el_Malta_desk_L2','4.2');
+  DB.set('el_Malta_desk_L3','4.5');
+  DB.set('el_Malta_desk_L4','4.6');
+  DB.set('el_Malta_desk_L5','4.3');
+  DB.set('el_Malta_desk_L6','4.4');
+  DB.set('el_Malta_desk_L7','4.16');
+  DB.set('el_Malta_desk_L8','4.20');
+  DB.set('el_Malta_desk_L9','4.14');
+  DB.set('el_Malta_desk_L10','4.21');
+  DB.set('el_Malta_desk_L11','4.31');
+  
+  DB.set('el_Malta_desk_L13','4.22');
+  DB.set('el_Malta_desk_L14','4.54');
+  DB.set('el_Malta_desk_L15','4.53');
+  DB.set('el_Malta_desk_L16','4.55');
+  DB.set('el_Malta_desk_L17','4.52');
+  DB.set('el_Malta_desk_L18','4.23');
+  DB.set('el_Malta_desk_L19','4.9');
+  DB.set('el_Malta_desk_L20','4.10');
+  DB.set('el_Malta_desk_L21','4.11');
+  DB.set('el_Malta_desk_L22','4.12');
+  DB.set('el_Malta_desk_L23','4.64');
+  DB.set('el_Malta_desk_L25','4.27');
+  DB.set('el_Malta_desk_L26','4.28');
+  DB.set('el_Malta_desk_L27','4.29');
+  DB.set('el_Malta_desk_L28','4.30');
+  DB.set('el_Malta_desk_L29','4.57');
+  DB.set('el_Malta_desk_L30','4.61');
+  DB.set('el_Malta_desk_L31','4.58');
+  DB.set('el_Malta_desk_L32','4.62');
+  DB.set('el_Malta_desk_L33','4.65');
+  DB.set('el_Malta_desk_L34','4.66');
+  DB.set('el_Malta_desk_L35','4.67');
+  DB.set('el_Malta_desk_L36','4.68');
+  DB.set('el_Malta_desk_L37','4.69');
+  DB.set('el_Malta_desk_L38','4.70');
+  DB.set('el_Malta_desk_L39','4.71');
+  DB.set('el_Malta_desk_L40','4.72');
+  DB.set('el_Malta_desk_L41','4.24');
+  DB.set('el_Malta_desk_L42','4.25');
+  DB.set('el_Malta_desk_L43','4.13');
+  DB.set('el_Malta_desk_L44','4.15');
+  DB.set('el_Malta_desk_L45','4.59');
+  DB.set('el_Malta_desk_L46','4.63');
+  DB.set('el_Malta_desk_L48','4.7');
+  DB.set('el_Malta_desk_L49','4.8');
+  DB.set('el_Malta_desk_L51','4.60');
+    DB.set('el_Malta_l4-legal','Legal Office - Claudio');
+  DB.set('el_Malta_l4-allhands','All Hands');
+    DB.set('el_Malta_room-5','Zelda');
+  DB.set('el_Malta_room-6','Lemmings');
+  DB.set('el_Malta_desk_L64','4.32');
+    DB.set('el_Malta_room-7','Sonic');
+    DB.set('el_Malta_desk_L52','4.17');
+    DB.set('el_Malta_desk_L53','4.33');
+    DB.set('el_Malta_desk_L54','4.44');
+    DB.set('el_Malta_desk_L55','4.45');
+    DB.set('el_Malta_desk_L56','4.46');
+    DB.set('el_Malta_desk_L57','4.47');
+    DB.set('el_Malta_desk_L58','4.48');
+    DB.set('el_Malta_desk_L59','4.49');
+    DB.set('el_Malta_desk_L60','4.51');
+    DB.set('el_Malta_desk_L61','4.50');
+    DB.set('el_Malta_desk_L62','Claudio C');
+    DB.set('el_Malta_desk_L63','4.56');
+    DB.set('el_Malta_desk_L65','4.18');
+    
+    localStorage.removeItem('df_el_Malta_desk_L12');
+      localStorage.removeItem('df_el_Malta_desk_L12');
+    DB.set('el_Malta_desk_M49','Entrance');
+    DB.set('el_Malta_room-L4-0','Linnea');
+    DB.set('el_Malta_room-L4-1','Space Invaders');
+    DB.set('el_Malta_room-L4-2','Final Fantasy');
+    DB.set('el_Malta_room-L4-3','Street Fighter');
+    DB.set('el_Malta_room-L4-4','Sonic');
+    DB.set('el_Malta_room-L4-5','Doom');
+    DB.set('el_Malta_room-L4-6','Lemmings');
+    DB.set('el_Malta_room-L4-7','Zelda');
+    DB.set('el_Malta_room-L5-0','Blue Grotto');
+    DB.set('el_Malta_room-L5-1','Mdina');
+    DB.set('el_Malta_room-L5-2','Comino');
+    DB.set('el_Malta_room-L5-3','Filfla');
+    DB.set('el_Malta_room-L5-4','Citadella');
+  DB.set('appver','v35');
+}
+
+// ═══ INIT ═══
+async function initApp(){
+  render(); // show login immediately
+
+  const account = await Auth.init();
+  if(account){
+    const user = Auth.getUser();
+    DB.set('user', user);
+    // Save/update this user in Supabase
+    await USERS.upsert(user);
+    // Load all data in parallel
+    await Promise.all([FF.load(), RF.load(), CI.load(), USERS.load()]);
+    await BK.loadOD(user.office||'Marbella', ds(0));
+    await BK.loadUser(user.id);
+    setState({user, office: user.office||'Marbella'});
+  }
+}
+
+if(document.readyState === 'loading'){
+  document.addEventListener('DOMContentLoaded', function(){ initApp().catch(e=>console.error('initApp error:', e)); });
+} else {
+  initApp().catch(e=>console.error('initApp error:', e));
+}
+</script>
+</body>
+</html>
