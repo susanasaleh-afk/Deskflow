@@ -6,6 +6,11 @@ const supabase = createClient(
   process.env.SUPABASE_SERVICE_KEY
 );
 
+async function isSuperAdmin(userId) {
+  const { data } = await supabase.from('users').select('is_superadmin').eq('id', userId).single();
+  return data?.is_superadmin === true;
+}
+
 module.exports = async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', 'https://gig-deskflow.vercel.app');
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, DELETE, OPTIONS');
@@ -21,8 +26,9 @@ module.exports = async function handler(req, res) {
 
   try {
     if (req.method === 'GET') {
-      const { data, error } = await supabase.from('users')
-        .select('id, name, email, office, is_admin')
+      const { data, error } = await supabase
+        .from('users')
+        .select('id, name, email, office, is_admin, is_superadmin')
         .order('name');
       if (error) throw error;
       return res.status(200).json(data);
@@ -30,6 +36,7 @@ module.exports = async function handler(req, res) {
 
     if (req.method === 'POST') {
       const callerIsAdmin = await isAdmin(supabase, caller.id);
+      const callerIsSuperAdmin = await isSuperAdmin(caller.id);
       const { id, office } = req.body;
 
       if (id === caller.id) {
@@ -45,9 +52,9 @@ module.exports = async function handler(req, res) {
 
       const safeUpdate = { id };
       if (office !== undefined) safeUpdate.office = office;
-      if (req.body.is_admin !== undefined) safeUpdate.is_admin = !!req.body.is_admin;
       if (req.body.name !== undefined) safeUpdate.name = req.body.name;
       if (req.body.email !== undefined) safeUpdate.email = req.body.email;
+      if (req.body.is_admin !== undefined && callerIsSuperAdmin) safeUpdate.is_admin = !!req.body.is_admin;
 
       const { data, error } = await supabase.from('users').upsert(safeUpdate, { onConflict: 'id' });
       if (error) throw error;
