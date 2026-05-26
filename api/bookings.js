@@ -14,7 +14,7 @@ module.exports = async function handler(req, res) {
 
   let caller;
   try {
-    caller = await verifyToken(req.headers.authorization);
+    caller = await verifyToken(req.headers);
   } catch (e) {
     return res.status(401).json({ error: 'Unauthorized: ' + e.message });
   }
