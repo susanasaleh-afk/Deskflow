@@ -368,7 +368,16 @@ async function waitForToken(maxWaitMs=10000){
   }
   throw new Error('Token not available after '+maxWaitMs+'ms');
 }
-
+function getMSALIdentity(){
+  const account=Auth._account||_msal.getActiveAccount()||(_msal.getAllAccounts()||[])[0];
+  if(!account) return null;
+  return {
+    id: account.localAccountId,
+    email: account.username,
+    name: account.name||account.username.split('@')[0],
+    tid: account.tenantId
+  };
+}
 async function api(path, method='GET', body=null, params=null){
   let url='/api/'+path;
   if(params) url+='?'+new URLSearchParams(params).toString();
