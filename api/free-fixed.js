@@ -9,7 +9,7 @@ const supabase = createClient(
 module.exports = async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', 'https://gig-deskflow.vercel.app');
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, DELETE, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-User-Id, X-User-Email, X-User-Name, X-Tenant-Id');
   if (req.method === 'OPTIONS') return res.status(200).end();
 
   let caller;
@@ -25,10 +25,8 @@ module.exports = async function handler(req, res) {
       if (error) throw error;
       return res.status(200).json(data);
     }
-
     const callerIsAdmin = await isAdmin(supabase, caller.id);
     if (!callerIsAdmin) return res.status(403).json({ error: 'Forbidden: admin required' });
-
     if (req.method === 'POST') {
       const { office, desk_id, dt } = req.body;
       const { data, error } = await supabase.from('free_fixed').upsert(
