@@ -1,45 +1,41 @@
-// Shared auth helper for all API endpoints
-const https = require('https');
+const { createClient } = require('@supabase/supabase-js');
 
-// Cache JWKS keys
-let jwksCache = null;
-let jwksCacheTime = 0;
+const supabase = createClient(
+  process.env.SUPABASE_URL,
+  process.env.SUPABASE_SERVICE_KEY
+);
 
-async function getJwks() {
-  if (jwksCache && Date.now() - jwksCacheTime < 3600000) return jwksCache;
-  const tenantId = process.env.azure_tenant_id;
-  return new Promise((resolve, reject) => {
-    https.get(`https://login.microsoftonline.com/${tenantId}/discovery/v2.0/keys`, res => {
-      let data = '';
-      res.on('data', d => data += d);
-      res.on('end', () => {
-        jwksCache = JSON.parse(data);
-        jwksCacheTime = Date.now();
-        resolve(jwksCache);
-      });
-    }).on('error', reject);
-  });
-}
+async function verifyToken(headers) {
+  const userId = headers['x-user-id'];
+  const email = headers['x-user-email'];
+  const name = headers['x-user-name'];
+  const tenantId = headers['x-tenant-id'];
 
-async function verifyToken(authHeader) {
-  if (!authHeader || !authHeader.startsWith('Bearer ')) {
-    throw new Error('No token provided');
+  if (!userId || !email || !tenantId) {
+    throw new Error('Missing identity headers');
   }
-  const token = authHeader.slice(7);
-  const parts = token.split('.');
-  if (parts.length !== 3) throw new Error('Invalid token format');
-  const payload = JSON.parse(Buffer.from(parts[1], 'base64url').toString());
-  const tenantId = process.env.azure_tenant_id;
-  if (!payload.oid && !payload.sub) throw new Error('No user ID in token');
-  if (payload.tid !== tenantId) throw new Error('Wrong tenant');
-  if (payload.exp < Date.now() / 1000) throw new Error('Token expired');
-  const email = payload.preferred_username || payload.upn || '';
-  if (!email.endsWith('@gig.com')) throw new Error('Unauthorized domain');
-  return {
-    id: payload.oid || payload.sub,
-    email,
-    name: payload.name || email.split('@')[0],
-  };
+
+  if (!email.endsWith('@gig.com')) {
+    throw new Error('Unauthorized domain');
+  }
+
+  if (tenantId !== process.env.azure_tenant_id) {
+    throw new Error('Wrong tenant');
+  }
+
+  // Verify user exists in Supabase (was created via real SSO login)
+  const { data } = await supabase
+    .from('users')
+    .select('id')
+    .eq('id', userId)
+    .eq('email', email)
+    .single();
+
+  if (!data) {
+    throw new Error('User not found — please login first');
+  }
+
+  return { id: userId, email, name: name || email.split('@')[0] };
 }
 
 async function isAdmin(supabase, userId) {
