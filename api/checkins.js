@@ -9,7 +9,7 @@ const supabase = createClient(
 module.exports = async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', 'https://gig-deskflow.vercel.app');
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, DELETE, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-User-Id, X-User-Email, X-User-Name, X-Tenant-Id');
   if (req.method === 'OPTIONS') return res.status(200).end();
 
   let caller;
@@ -25,7 +25,6 @@ module.exports = async function handler(req, res) {
       if (error) throw error;
       return res.status(200).json(data);
     }
-
     if (req.method === 'POST') {
       const { office, desk_id, date } = req.body;
       if (!office || !desk_id || !date) return res.status(400).json({ error: 'Missing fields' });
@@ -38,7 +37,6 @@ module.exports = async function handler(req, res) {
       if (error) throw error;
       return res.status(200).json(data);
     }
-
     if (req.method === 'DELETE') {
       const { office, desk_id, date, user_id } = req.query;
       const callerIsAdmin = await isAdmin(supabase, caller.id);
@@ -48,7 +46,6 @@ module.exports = async function handler(req, res) {
       if (error) throw error;
       return res.status(200).json({ success: true });
     }
-
     return res.status(405).json({ error: 'Method not allowed' });
   } catch (e) {
     return res.status(500).json({ error: e.message });
