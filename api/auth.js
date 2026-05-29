@@ -21,35 +21,34 @@ function getKey(header, callback) {
 }
 
 async function verifyToken(headers) {
-  // Try JWT Bearer token first
   const authHeader = headers['authorization'];
+
+  // If Bearer token present — verify cryptographically, NO fallback
   if (authHeader && authHeader.startsWith('Bearer ')) {
     const token = authHeader.slice(7);
-    try {
-      const payload = await new Promise((resolve, reject) => {
-        jwt.verify(token, getKey, {
-          audience: process.env.azure_client_id,
-          issuer: `https://login.microsoftonline.com/${process.env.azure_tenant_id}/v2.0`,
-          algorithms: ['RS256']
-        }, (err, decoded) => {
-          if (err) reject(err);
-          else resolve(decoded);
-        });
+    const payload = await new Promise((resolve, reject) => {
+      jwt.verify(token, getKey, {
+        algorithms: ['RS256']
+      }, (err, decoded) => {
+        if (err) reject(new Error('Invalid token: ' + err.message));
+        else resolve(decoded);
       });
-      const email = payload.preferred_username || payload.upn || '';
-      if (!email.endsWith('@gig.com')) throw new Error('Unauthorized domain');
-      return {
-        id: payload.oid || payload.sub,
-        email,
-        name: payload.name || email.split('@')[0],
-      };
-    } catch(e) {
-      console.warn('JWT verification failed:', e.message);
-      // Fall through to header-based auth
-    }
+    });
+
+    if (payload.tid !== process.env.azure_tenant_id) throw new Error('Wrong tenant');
+    if (payload.exp < Date.now() / 1000) throw new Error('Token expired');
+
+    const email = payload.preferred_username || payload.upn || '';
+    if (!email.endsWith('@gig.com')) throw new Error('Unauthorized domain');
+
+    return {
+      id: payload.oid || payload.sub,
+      email,
+      name: payload.name || email.split('@')[0],
+    };
   }
 
-  // Fallback: identity headers (for existing sessions)
+  // No Bearer token — use identity headers
   const userId = headers['x-user-id'];
   const email = headers['x-user-email'];
   const name = headers['x-user-name'];
