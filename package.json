@@ -2,6 +2,8 @@
   "name": "gig-deskflow",
   "version": "1.0.0",
   "dependencies": {
-    "@supabase/supabase-js": "^2.0.0"
+    "@supabase/supabase-js": "^2.0.0",
+    "jsonwebtoken": "^9.0.0",
+    "jwks-rsa": "^3.0.0"
   }
 }
