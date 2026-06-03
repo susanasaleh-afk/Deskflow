@@ -22,46 +22,31 @@ function getKey(header, callback) {
 
 async function verifyToken(headers) {
   const authHeader = headers['authorization'];
-
-  // If Bearer token present — verify cryptographically, NO fallback
-  if (authHeader && authHeader.startsWith('Bearer ')) {
-    const token = authHeader.slice(7);
-    const payload = await new Promise((resolve, reject) => {
-      jwt.verify(token, getKey, {
-        algorithms: ['RS256']
-      }, (err, decoded) => {
-        if (err) reject(new Error('Invalid token: ' + err.message));
-        else resolve(decoded);
-      });
-    });
-
-    if (payload.tid !== process.env.azure_tenant_id) throw new Error('Wrong tenant');
-    if (payload.exp < Date.now() / 1000) throw new Error('Token expired');
-
-    const email = payload.preferred_username || payload.upn || '';
-    if (!email.endsWith('@gig.com')) throw new Error('Unauthorized domain');
-
-    return {
-      id: payload.oid || payload.sub,
-      email,
-      name: payload.name || email.split('@')[0],
-    };
+  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    throw new Error('No token provided');
   }
 
-  // No Bearer token — use identity headers
-  const userId = headers['x-user-id'];
-  const email = headers['x-user-email'];
-  const name = headers['x-user-name'];
-  const tenantId = headers['x-tenant-id'];
+  const token = authHeader.slice(7);
+  const payload = await new Promise((resolve, reject) => {
+    jwt.verify(token, getKey, {
+      algorithms: ['RS256']
+    }, (err, decoded) => {
+      if (err) reject(new Error('Invalid token: ' + err.message));
+      else resolve(decoded);
+    });
+  });
 
-  if (!userId || !email || !tenantId) throw new Error('Missing identity');
+  if (payload.tid !== process.env.azure_tenant_id) throw new Error('Wrong tenant');
+  if (payload.exp < Date.now() / 1000) throw new Error('Token expired');
+
+  const email = payload.preferred_username || payload.upn || '';
   if (!email.endsWith('@gig.com')) throw new Error('Unauthorized domain');
-  if (tenantId !== process.env.azure_tenant_id) throw new Error('Wrong tenant');
 
-  const { data } = await supabase.from('users').select('id').eq('id', userId).eq('email', email).single();
-  if (!data) throw new Error('User not found');
-
-  return { id: userId, email, name: name || email.split('@')[0] };
+  return {
+    id: payload.oid || payload.sub,
+    email,
+    name: payload.name || email.split('@')[0],
+  };
 }
 
 async function isAdmin(supabase, userId) {
