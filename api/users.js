@@ -26,6 +26,20 @@ module.exports = async function handler(req, res) {
 
   try {
     if (req.method === 'GET') {
+      const callerIsAdmin = await isAdmin(supabase, caller.id);
+
+      if (!callerIsAdmin) {
+        // Non-admin: only return own profile
+        const { data, error } = await supabase
+          .from('users')
+          .select('id, name, email, office')
+          .eq('id', caller.id)
+          .single();
+        if (error) throw error;
+        return res.status(200).json([data]);
+      }
+
+      // Admin: return all users with safe fields only
       const { data, error } = await supabase
         .from('users')
         .select('id, name, email, office, is_admin, is_superadmin')
