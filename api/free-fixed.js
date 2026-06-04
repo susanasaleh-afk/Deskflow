@@ -19,14 +19,18 @@ module.exports = async function handler(req, res) {
     return res.status(401).json({ error: 'Unauthorized: ' + e.message });
   }
 
+  const callerIsAdmin = await isAdmin(supabase, caller.id);
+  if (!callerIsAdmin) return res.status(403).json({ error: 'Forbidden: admin required' });
+
   try {
     if (req.method === 'GET') {
-      const { data, error } = await supabase.from('free_fixed').select('*');
+      const { office } = req.query;
+      let query = supabase.from('free_fixed').select('*');
+      if (office) query = query.eq('office', office);
+      const { data, error } = await query;
       if (error) throw error;
       return res.status(200).json(data);
     }
-    const callerIsAdmin = await isAdmin(supabase, caller.id);
-    if (!callerIsAdmin) return res.status(403).json({ error: 'Forbidden: admin required' });
     if (req.method === 'POST') {
       const { office, desk_id, dt } = req.body;
       const { data, error } = await supabase.from('free_fixed').upsert(

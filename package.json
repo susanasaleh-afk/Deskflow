@@ -1,9 +1,16 @@
 {
   "name": "gig-deskflow",
   "version": "1.0.0",
+  "scripts": {
+    "dev": "vercel dev",
+    "deploy": "vercel --prod"
+  },
   "dependencies": {
     "@supabase/supabase-js": "^2.0.0",
     "jsonwebtoken": "^9.0.0",
     "jwks-rsa": "^3.0.0"
+  },
+  "devDependencies": {
+    "vercel": "^37.0.0"
   }
 }

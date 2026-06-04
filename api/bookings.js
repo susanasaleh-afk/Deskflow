@@ -42,8 +42,10 @@ module.exports = async function handler(req, res) {
       const { office, date, type, resource_id, room_slot, room_title } = req.body;
       if (!office || !date || !type || !resource_id) return res.status(400).json({ error: 'Missing required fields' });
 
-      const { data: existing } = await supabase.from('bookings').select('id')
+      let conflictQuery = supabase.from('bookings').select('id')
         .eq('office', office).eq('date', date).eq('resource_id', resource_id).eq('type', type);
+      if (type === 'room') conflictQuery = conflictQuery.eq('room_slot', room_slot || null);
+      const { data: existing } = await conflictQuery;
       if (existing && existing.length > 0) return res.status(409).json({ error: 'Already booked' });
 
       const id = 'b' + Date.now() + Math.random().toString(36).slice(2);
@@ -56,7 +58,7 @@ module.exports = async function handler(req, res) {
         user_initials: caller.name.split(' ').map(w => w[0] || '').slice(0, 2).join('').toUpperCase(),
       });
       if (error) throw error;
-      return res.status(200).json(data);
+      return res.status(201).json(data);
     }
 
     if (req.method === 'DELETE') {

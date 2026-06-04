@@ -32,6 +32,7 @@ module.exports = async function handler(req, res) {
     }
     if (req.method === 'POST') {
       const { office, desk_id, person, days } = req.body;
+      if (!office || !desk_id || !person || !days) return res.status(400).json({ error: 'Missing required fields' });
       const { data, error } = await supabase.from('recurring_fixed').upsert(
         { office, desk_id, person, days }, { onConflict: 'office,desk_id' }
       );
