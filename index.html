@@ -789,7 +789,7 @@ function bindLogin(){
         DB.set('user',user);
         document.getElementById('app').innerHTML='<div style="display:flex;align-items:center;justify-content:center;height:100vh;font-family:inherit;color:#666;flex-direction:column;gap:12px"><div style="width:32px;height:32px;border:3px solid #e5e7eb;border-top-color:#1D9E75;border-radius:50%;animation:spin 0.8s linear infinite"></div><div style="font-size:14px">Loading...</div></div>';
         await USERS.upsert(user);
-        try{var me=await api('me');AdminState._init(me.is_admin);SuperAdminState._init(me.is_superadmin);user.is_admin=me.is_admin;user.is_superadmin=me.is_superadmin;user.office=me.office||user.office;}catch(e){}
+        try{var me=await api('me');AdminState._init(me.is_admin);SuperAdminState._init(me.is_superadmin);user.is_admin=me.is_admin;user.is_superadmin=me.is_superadmin;user.office=me.office||user.office;}catch(e){console.warn('Failed to load user profile:',e);}
         await USERS.load(user);
         await Promise.all([FF.load(),RF.load(),CI.load()]);
         await BK.loadOD(user.office||'Marbella',ds(0));
@@ -854,7 +854,7 @@ function getWDays(){
 }
 function dOff(d){const t=new Date();t.setHours(0,0,0,0);const x=new Date(d);x.setHours(0,0,0,0);return Math.round((x-t)/86400000)}
 function renderWeek(){
-  const days=getWDays(),allB=BK._userCache||[],mos=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'],dNames=['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+  const days=getWDays(),allB=BK._ud||[],mos=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'],dNames=['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
   const f=days[0],l=days[6];
   let ml=mos[f.getMonth()]+' '+f.getFullYear();
   if(f.getMonth()!==l.getMonth())ml=mos[f.getMonth()]+' - '+mos[l.getMonth()]+' '+l.getFullYear();
@@ -866,7 +866,7 @@ function renderWeek(){
     '<div class="cal-view-toggle"><button class="cal-view-btn'+(S.calView==='week'?' active':'')+'" data-calview="week">Week</button><button class="cal-view-btn'+(S.calView==='month'?' active':'')+'" data-calview="month">Month</button></div>'+
   '</div><div class="week-strip">'+
     days.map((d,i)=>{
-      const str=d.getFullYear()+'-'+(d.getMonth()<9?'0':'')+(d.getMonth()+1)+'-'+(d.getDate()<10?'0':'')+d.getDate(),off=dOff(d);
+      const str=d.getFullYear()+'-'+((d.getMonth()+1)<10?'0':'')+(d.getMonth()+1)+'-'+(d.getDate()<10?'0':'')+d.getDate(),off=dOff(d);
       const myB=allB.filter(b=>b.date===str&&b.userId===S.user.id);
       const dots=[];
       if(myB.find(b=>b.type==='desk'))dots.push('var(--blue)');
@@ -885,7 +885,7 @@ function renderMonth(){
   const today=new Date(),ref=new Date(today.getFullYear(),today.getMonth()+S.calMonthOffset,1);
   const mos=['January','February','March','April','May','June','July','August','September','October','November','December'];
   const dNames=['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
-  const allB=BK._userCache||[];
+  const allB=BK._ud||[];
   const first=new Date(ref.getFullYear(),ref.getMonth(),1),last=new Date(ref.getFullYear(),ref.getMonth()+1,0);
   const sdow=first.getDay()===0?6:first.getDay()-1,cells=[];
   for(let i=0;i<sdow;i++){const d=new Date(first);d.setDate(d.getDate()-(sdow-i));cells.push({d,other:true})}
@@ -1016,7 +1016,7 @@ function renderFloorMap(){
     (ci?'<button class="banner-btn" id="checkout-btn" data-desk="'+myDesk.resourceId+'" data-date="'+date+'">Check out</button>':
         '<div style="display:flex;gap:6px"><button class="banner-btn" id="checkin-btn" data-desk="'+myDesk.resourceId+'" data-date="'+date+'">Check in</button><button class="banner-btn" style="background:transparent;color:var(--green-dark);border:1px solid var(--green-border)" data-cancel="'+myDesk.id+'">Cancel</button></div>')+
   '</div>':'')+
-  (S.user&&S.user.email==='susana.saleh@gig.com'&&window.innerWidth>768?editBar:'')+'<div class="map-scroll-wrap" style="overflow:scroll;-webkit-overflow-scrolling:touch;width:100%;height:60vh;position:relative;">'+mapHtml+'</div>'+
+  (S.user&&AdminState.get()&&window.innerWidth>768?editBar:'')+'<div class="map-scroll-wrap" style="overflow:scroll;-webkit-overflow-scrolling:touch;width:100%;height:60vh;position:relative;">'+mapHtml+'</div>'+
   '<div class="legend">'+
     '<div class="legend-item"><div class="legend-dot" style="background:var(--green-bg);border-color:var(--green-border)"></div>Available</div>'+
     '<div class="legend-item"><div class="legend-dot" style="background:var(--red-bg);border-color:var(--red-border)"></div>Booked</div>'+
@@ -1449,9 +1449,9 @@ function renderAdmin(){
     (freed.length>0?'<div style="border-top:1px solid var(--border);padding-top:12px">'+
       '<div style="font-size:12px;font-weight:600;margin-bottom:8px">Active releases</div>'+
       freed.sort(function(a,b){return a.dt.localeCompare(b.dt)}).map(function(f){
-        var person=OFFICES[f.o]?.fixedDesks?.[f.d]||f.d,booked=BK.isBooked(f.o,f.dt,'desk',f.d);
+        var person=OFFICES[f.office]?.fixedDesks?.[f.desk_id]||f.desk_id,booked=BK.isBooked(f.office,f.dt,'desk',f.desk_id);
         return'<div style="display:flex;align-items:center;gap:8px;padding:7px 10px;background:var(--green-bg);border:1px solid var(--green-border);border-radius:var(--r);margin-bottom:4px">'+
-          '<span style="flex:1;font-size:12px;color:var(--green-dark)"><strong>'+person+'</strong> &middot; '+deskLabel(f.d)+' &middot; '+f.o+' &middot; '+fmtD(f.dt)+(booked?' &middot; <span style="background:var(--blue-bg);color:var(--blue);padding:1px 5px;border-radius:3px;font-size:10px">Booked by '+booked.userName+'</span>':'')+'</span>'+
+          '<span style="flex:1;font-size:12px;color:var(--green-dark)"><strong>'+person+'</strong> &middot; '+deskLabel(f.desk_id)+' &middot; '+f.office+' &middot; '+fmtD(f.dt)+(booked?' &middot; <span style="background:var(--blue-bg);color:var(--blue);padding:1px 5px;border-radius:3px;font-size:10px">Booked by '+booked.userName+'</span>':'')+'</span>'+
           '<button class="cancel-btn aUr" data-o="'+f.o+'" data-d="'+f.d+'" data-dt="'+f.dt+'">Revert</button>'+
         '</div>';
       }).join('')+'</div>':'')+
@@ -1737,75 +1737,6 @@ function bindAll(){
         toast('Admin granted ✓');
       }
       render();
-    });
-  });
-  // Sort user table
-  var umSort={col:'name',asc:true};
-  document.querySelectorAll('.um-sort').forEach(function(th){
-    th.addEventListener('click',function(){
-      var col=th.dataset.col;
-      if(umSort.col===col) umSort.asc=!umSort.asc;
-      else{umSort.col=col;umSort.asc=true;}
-      DEMO_USERS.sort(function(a,b){
-        var av=(a[col]||'').toLowerCase(),bv=(b[col]||'').toLowerCase();
-        return umSort.asc?(av>bv?1:-1):(av<bv?1:-1);
-      });
-      render();
-    });
-  });
-  // Search user table
-  var umSearchEl=document.getElementById('um-search');
-  if(umSearchEl){
-    umSearchEl.addEventListener('input',function(){
-      var q=umSearchEl.value.toLowerCase();
-      document.querySelectorAll('#um-table tbody tr').forEach(function(tr){
-        tr.style.display=tr.textContent.toLowerCase().includes(q)?'':'none';
-      });
-    });
-  }
-  // Office selector in sidebar
-  var officeSelector=document.getElementById('office-selector');
-  var officeSelect=document.getElementById('office-select');
-  if(officeSelector&&officeSelect){
-    officeSelector.addEventListener('click',function(){
-      officeSelect.style.display=officeSelect.style.display==='none'?'block':'none';
-    });
-    officeSelect.addEventListener('change',function(){
-      setState({office:officeSelect.value});
-      officeSelect.style.display='none';
-    });
-  }
-  document.querySelectorAll('.malta-floor-btn').forEach(function(b){
-    b.addEventListener('click',function(){setState({maltaFloor:b.dataset.floor})});
-  });
-  // User management
-  var umAdd=document.getElementById('um-add');
-  if(umAdd){
-    umAdd.addEventListener('click',async function(){
-      var name=document.getElementById('um-name').value.trim();
-      var email=document.getElementById('um-email').value.trim().toLowerCase();
-      var office=document.getElementById('um-office').value;
-      var isAdminCb=document.getElementById('um-admin').checked;
-      if(!name||!email){toast('Name and email required','error');return;}
-      if(DEMO_USERS.find(function(u){return u.email===email})){toast('User already exists','error');return;}
-      var parts=name.split(' ');
-      var initials=parts.map(function(p){return p[0]}).join('').toUpperCase().slice(0,2);
-      var uid='u_'+email.replace(/[@.\-]/g,'_');
-      await USERS.upsert({id:uid,name:name,email:email,initials:initials,office:office});
-      if(isAdminCb) await USERS.setAdmin(email,true);
-      await USERS.load();
-      toast(name+' added ✓');render();
-    });
-  }
-  document.querySelectorAll('.um-del').forEach(function(btn){
-    btn.addEventListener('click',async function(){
-      var uid=btn.dataset.uid;
-      var idx=DEMO_USERS.findIndex(function(u){return u.id===uid});
-      if(idx>-1){
-        var name=DEMO_USERS[idx].name;
-        await USERS.remove(uid);
-        toast(name+' removed');render();
-      }
     });
   });
   // Sort user table
