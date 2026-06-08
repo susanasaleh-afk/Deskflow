@@ -8,7 +8,7 @@ const supabase = createClient(
 );
 
 const client = jwksClient({
-  jwksUri: `https://login.microsoftonline.com/${process.env.azure_tenant_id}/discovery/v2.0/keys`,
+  jwksUri: `https://login.microsoftonline.com/${process.env.AZURE_TENANT_ID}/discovery/v2.0/keys`,
   cache: true,
   rateLimit: true,
 });
@@ -36,7 +36,7 @@ async function verifyToken(headers) {
     });
   });
 
-  if (payload.tid !== process.env.azure_tenant_id) throw new Error('Wrong tenant');
+  if (payload.tid !== process.env.AZURE_TENANT_ID) throw new Error('Wrong tenant');
   if (payload.exp < Date.now() / 1000) throw new Error('Token expired');
 
   const email = payload.preferred_username || payload.upn || '';

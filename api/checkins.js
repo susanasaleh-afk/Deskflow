@@ -21,7 +21,10 @@ module.exports = async function handler(req, res) {
 
   try {
     if (req.method === 'GET') {
-      const { data, error } = await supabase.from('checkins').select('*');
+      const callerIsAdmin = await isAdmin(supabase, caller.id);
+      let query = supabase.from('checkins').select('*');
+      if (!callerIsAdmin) query = query.eq('user_id', caller.id);
+      const { data, error } = await query;
       if (error) throw error;
       return res.status(200).json(data);
     }
@@ -42,7 +45,7 @@ module.exports = async function handler(req, res) {
       const callerIsAdmin = await isAdmin(supabase, caller.id);
       if (user_id !== caller.id && !callerIsAdmin) return res.status(403).json({ error: 'Forbidden' });
       const { error } = await supabase.from('checkins').delete()
-        .match({ office, desk_id, date, user_id: caller.id });
+        .match({ office, desk_id, date, user_id: callerIsAdmin ? user_id : caller.id });
       if (error) throw error;
       return res.status(200).json({ success: true });
     }
