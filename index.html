@@ -830,7 +830,7 @@ function renderSidebar(){
   return '<div class="sidebar">'+
     '<div class="logo-wrap"><div class="logo-icon" style="background:none;padding:0"><img src="https://raw.githubusercontent.com/susanasaleh-afk/Deskflow/main/gig-logo-mint%20(2).png" style="width:32px;height:32px;object-fit:contain;border-radius:4px"/></div><div class="logo-text">GIG<span> Desk</span></div></div>'+
     '<div class="nav-section"><div class="nav-label">Workspace</div>'+
-      nav.map(n=>'<button class="nav-btn'+(S.view===n.key?' active':'')+'" '+(n.key==='pet'?'data-pet="1"':'data-view="'+n.key+'"')+'><span style="width:18px;text-align:center">'+n.icon+'</span>'+n.label+'</button>').join('')+
+      nav.map(n=>'<button class="nav-btn'+(S.view===n.key?' active':'')+'" data-view="'+n.key+'"><span style="width:18px;text-align:center">'+n.icon+'</span>'+n.label+'</button>').join('')+
     '</div>'+
     '<div class="offices-section"><div class="nav-label" style="padding:0 10px;margin-bottom:6px">Offices</div>'+
       Object.entries(OFFICES).filter(([nm])=>!HiddenOffices.isHidden(nm)).map(([nm,cfg])=>
