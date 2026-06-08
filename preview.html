@@ -65,15 +65,14 @@ const PARKING_OFFICES = ['Marbella'];
 const DOG_IMG = 'https://raw.githubusercontent.com/susanasaleh-afk/Deskflow/main/dog.jpg';
 
 function getNav(office) {
-  const nav = [
+  return [
     {icon:'⊞', label:'Floor map'},
+    {icon:'🅿️', label:'Parking'},
     {icon:'📅', label:'My bookings'},
     {icon:'🍽️', label:'Lunch'},
+    {icon:'🐾', label:'Bring Your Pet', pet:true},
+    {icon:'⚙️', label:'Admin'},
   ];
-  if (PARKING_OFFICES.includes(office)) nav.splice(1,0,{icon:'🅿️', label:'Parking'});
-  if (PET_OFFICES.includes(office)) nav.splice(-1,0,{icon:'🐾', label:'Bring Your Pet', pet:true});
-  nav.push({icon:'⚙️', label:'Admin'});
-  return nav;
 }
 
 let hidden = ['Malta','Toulouse'];
@@ -89,7 +88,7 @@ function renderSidebar() {
     '<div class="logo-wrap"><div class="logo-text">GIG<span> Desk</span></div></div>' +
     '<div class="nav-section"><div class="nav-label">Workspace</div>' +
       getNav(activeOffice).map((n,i) =>
-        '<button class="nav-btn'+(i===0?' active':'')+'" onclick="'+( n.pet ? 'showPet(event,\''+activeOffice+'\')' : '')+'">' +
+        '<button class="nav-btn'+(i===0?' active':'')+'" onclick="'+(n.pet ? 'showPet(event,\''+activeOffice+'\')' : 'selectNav(\''+n.label+'\')')+'">' +
           '<span style="width:18px;text-align:center">'+n.icon+'</span>'+n.label+
         '</button>'
       ).join('') +
@@ -127,6 +126,10 @@ function selectOffice(nm) {
   renderSidebar();
 }
 
+function selectNav(label) {
+  // just for preview — no-op
+}
+
 function showOffice(nm) {
   hidden = hidden.filter(h => h !== nm);
   if (activeOffice === nm) activeOffice = 'Marbella';
@@ -140,13 +143,19 @@ function hideOffice(nm) {
 }
 
 function showPet(e, office) {
-  e.stopPropagation();
+  if(e) e.stopPropagation();
+  const isPetOffice = PET_OFFICES.includes(office);
   document.getElementById('modal-container').innerHTML =
     '<div class="modal-overlay" onclick="closeModal()">' +
       '<div class="modal" onclick="event.stopPropagation()">' +
         '<div style="font-size:14px;font-weight:600;color:var(--text2);margin-bottom:12px">🐾 Bring Your Pet — '+office+' office</div>' +
-        '<img src="'+DOG_IMG+'" alt="Coming Soon" style="width:200px;height:auto;border-radius:12px;margin-bottom:14px" onerror="this.style.display=\'none\'"/>' +
-        '<div style="font-size:12px;color:var(--text3)">We\'re working on making your office pet-friendly.<br>Stay tuned! 🦴</div>' +
+        (isPetOffice
+          ? '<img src="'+DOG_IMG+'" alt="Coming Soon" style="width:200px;height:auto;border-radius:12px;margin-bottom:14px" onerror="this.style.display=\'none\'"/>' +
+            '<div style="font-size:12px;color:var(--text3)">We\'re working on making your office pet-friendly.<br>Stay tuned! 🦴</div>'
+          : '<div style="font-size:48px;margin-bottom:12px">🚫</div>' +
+            '<div style="font-size:14px;font-weight:600;margin-bottom:8px;color:#993C1D">Not available at this location</div>' +
+            '<div style="font-size:12px;color:#9ca3af">Sorry, Bring Your Pet is not available at the '+office+' office.</div>'
+        ) +
         '<div class="modal-actions"><button class="btn-secondary" onclick="closeModal()">Close</button></div>' +
       '</div>' +
     '</div>';
