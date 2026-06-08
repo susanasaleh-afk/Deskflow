@@ -816,23 +816,26 @@ function bindLogin(){
 // ─── SIDEBAR ───
 function renderSidebar(){
   const isAdmin=AdminState.get();
+  const hasPet=['Barcelona','Toulouse','Malta'].includes(S.office);
+  const hasParking=OFFICES[S.office]&&OFFICES[S.office].parking&&OFFICES[S.office].parking.length>0;
+  const hasFood=OFFICES[S.office]&&OFFICES[S.office].food&&OFFICES[S.office].food.length>0;
   const nav=[
     {key:'map',icon:'\u229e',label:'Floor map'},
-    {key:'parking',icon:'\ud83c\udd7f\ufe0f',label:'Parking'},
+    ...(hasParking?[{key:'parking',icon:'\ud83c\udd7f\ufe0f',label:'Parking'}]:[]),
     {key:'mybookings',icon:'\ud83d\udcc5',label:'My bookings'},
-...(OFFICES[S.office]&&OFFICES[S.office].food&&OFFICES[S.office].food.length?[{key:'food',icon:'🍽️',label:'Lunch'}]:[]),
-        ...(isAdmin?[{key:'admin',icon:'\u2699\ufe0f',label:'Admin'}]:[]),
+    ...(hasFood?[{key:'food',icon:'🍽️',label:'Lunch'}]:[]),
+    ...(hasPet?[{key:'pet',icon:'🐾',label:'Bring Your Pet'}]:[]),
+    ...(isAdmin?[{key:'admin',icon:'\u2699\ufe0f',label:'Admin'}]:[]),
   ];
   return '<div class="sidebar">'+
     '<div class="logo-wrap"><div class="logo-icon" style="background:none;padding:0"><img src="https://raw.githubusercontent.com/susanasaleh-afk/Deskflow/main/gig-logo-mint%20(2).png" style="width:32px;height:32px;object-fit:contain;border-radius:4px"/></div><div class="logo-text">GIG<span> Desk</span></div></div>'+
     '<div class="nav-section"><div class="nav-label">Workspace</div>'+
-      nav.map(n=>'<button class="nav-btn'+(S.view===n.key?' active':'')+'" data-view="'+n.key+'"><span style="width:18px;text-align:center">'+n.icon+'</span>'+n.label+'</button>').join('')+
+      nav.map(n=>'<button class="nav-btn'+(S.view===n.key?' active':'')+'" '+(n.key==='pet'?'data-pet="1"':'data-view="'+n.key+'"')+'><span style="width:18px;text-align:center">'+n.icon+'</span>'+n.label+'</button>').join('')+
     '</div>'+
     '<div class="offices-section"><div class="nav-label" style="padding:0 10px;margin-bottom:6px">Offices</div>'+
       Object.entries(OFFICES).filter(([nm])=>!HiddenOffices.isHidden(nm)).map(([nm,cfg])=>
         '<button class="office-btn'+(S.office===nm?' active':'')+'" data-office="'+nm+'" style="justify-content:space-between">'+
           '<span style="display:flex;align-items:center;gap:8px"><div class="office-dot" style="background:'+cfg.color+'"></div>'+cfg.flag+' '+nm+'</span>'+
-          (['Barcelona','Toulouse','Malta'].includes(nm)?'<span class="pet-icon" data-office="'+nm+'" title="Bring your pet" style="font-size:14px;cursor:pointer" >🐾</span>':'')+
         '</button>'
       ).join('')+
       (isAdmin?'<div style="padding:4px 10px;margin-top:6px;border-top:1px solid var(--border)">'+
@@ -1716,7 +1719,7 @@ function bindAll(){
   document.querySelectorAll('.office-btn[data-office]').forEach(function(b){b.addEventListener('click',function(){setState({office:b.dataset.office,modal:null,editMode:false})})});
   document.querySelectorAll('[data-hide-office]').forEach(function(b){b.addEventListener('click',function(e){e.stopPropagation();HiddenOffices.toggle(b.dataset.hideOffice);render();})});
   document.querySelectorAll('[data-show-office]').forEach(function(b){b.addEventListener('click',function(e){e.stopPropagation();HiddenOffices.toggle(b.dataset.showOffice);render();})});
-  document.querySelectorAll('.pet-icon').forEach(function(el){el.addEventListener('click',function(e){e.stopPropagation();setState({modal:{type:'pet',office:el.dataset.office}});});});
+  document.querySelectorAll('[data-pet]').forEach(function(b){b.addEventListener('click',function(){setState({modal:{type:'pet',office:S.office}});});});
   document.getElementById('logout-btn')?.addEventListener('click',function(){
     DB.set('user',null);
     Auth.signOut();
