@@ -816,15 +816,13 @@ function bindLogin(){
 // ─── SIDEBAR ───
 function renderSidebar(){
   const isAdmin=AdminState.get();
-  const hasPet=['Barcelona','Toulouse','Malta'].includes(S.office);
-  const hasParking=OFFICES[S.office]&&OFFICES[S.office].parking&&OFFICES[S.office].parking.length>0;
   const hasFood=OFFICES[S.office]&&OFFICES[S.office].food&&OFFICES[S.office].food.length>0;
   const nav=[
     {key:'map',icon:'\u229e',label:'Floor map'},
-    ...(hasParking?[{key:'parking',icon:'\ud83c\udd7f\ufe0f',label:'Parking'}]:[]),
+    {key:'parking',icon:'\ud83c\udd7f\ufe0f',label:'Parking'},
     {key:'mybookings',icon:'\ud83d\udcc5',label:'My bookings'},
     ...(hasFood?[{key:'food',icon:'🍽️',label:'Lunch'}]:[]),
-    ...(hasPet?[{key:'pet',icon:'🐾',label:'Bring Your Pet'}]:[]),
+    {key:'pet',icon:'🐾',label:'Bring Your Pet'},
     ...(isAdmin?[{key:'admin',icon:'\u2699\ufe0f',label:'Admin'}]:[]),
   ];
   return '<div class="sidebar">'+
@@ -1676,10 +1674,16 @@ function renderAdmin(){
 function renderModal(){
   var m=S.modal,date=ds(S.dayOffset);
   if(m.type==='pet'){
+    var isPetOffice=['Barcelona','Toulouse','Malta'].includes(m.office);
     return '<div class="modal-overlay" id="mOv"><div class="modal" style="max-width:320px;text-align:center;padding:28px 24px">'+
       '<div style="font-size:14px;font-weight:600;color:var(--text2);margin-bottom:12px">🐾 Bring Your Pet — '+m.office+' office</div>'+
-      '<img src="https://raw.githubusercontent.com/susanasaleh-afk/Deskflow/main/dog.jpg" alt="Coming Soon" style="width:200px;height:auto;border-radius:12px;margin-bottom:14px"/>'+
-      '<div style="font-size:12px;color:var(--text3)">We\'re working on making your office pet-friendly.<br>Stay tuned! 🦴</div>'+
+      (isPetOffice
+        ?'<img src="https://raw.githubusercontent.com/susanasaleh-afk/Deskflow/main/dog.jpg" alt="Coming Soon" style="width:200px;height:auto;border-radius:12px;margin-bottom:14px"/>'+
+          '<div style="font-size:12px;color:var(--text3)">We\'re working on making your office pet-friendly.<br>Stay tuned! 🦴</div>'
+        :'<div style="font-size:48px;margin-bottom:12px">🚫</div>'+
+          '<div style="font-size:14px;font-weight:600;margin-bottom:8px;color:var(--red-dark)">Not available at this location</div>'+
+          '<div style="font-size:12px;color:var(--text3)">Sorry, Bring Your Pet is not available at the '+m.office+' office.</div>'
+      )+
       '<div class="modal-actions" style="margin-top:20px"><button class="btn-secondary" id="mCls">Close</button></div>'+
     '</div></div>';
   }
@@ -1715,7 +1719,10 @@ function renderModal(){
 // ─── BIND ALL ───
 function bindAll(){
   // Nav
-  document.querySelectorAll('.nav-btn[data-view]').forEach(function(b){b.addEventListener('click',function(){setState({view:b.dataset.view,modal:null,editMode:false})})});
+  document.querySelectorAll('.nav-btn[data-view]').forEach(function(b){b.addEventListener('click',function(){
+    if(b.dataset.view==='pet'){setState({modal:{type:'pet',office:S.office}});}
+    else{setState({view:b.dataset.view,modal:null,editMode:false});}
+  })});
   document.querySelectorAll('.office-btn[data-office]').forEach(function(b){b.addEventListener('click',function(){setState({office:b.dataset.office,modal:null,editMode:false})})});
   document.querySelectorAll('[data-hide-office]').forEach(function(b){b.addEventListener('click',function(e){e.stopPropagation();HiddenOffices.toggle(b.dataset.hideOffice);render();})});
   document.querySelectorAll('[data-show-office]').forEach(function(b){b.addEventListener('click',function(e){e.stopPropagation();HiddenOffices.toggle(b.dataset.showOffice);render();})});
