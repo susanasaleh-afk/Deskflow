@@ -816,12 +816,14 @@ function bindLogin(){
 // ─── SIDEBAR ───
 function renderSidebar(){
   const isAdmin=AdminState.get();
+  const hasFood=OFFICES[S.office]&&OFFICES[S.office].food&&OFFICES[S.office].food.length>0;
   const nav=[
     {key:'map',icon:'\u229e',label:'Floor map'},
     {key:'parking',icon:'\ud83c\udd7f\ufe0f',label:'Parking'},
     {key:'mybookings',icon:'\ud83d\udcc5',label:'My bookings'},
-...(OFFICES[S.office]&&OFFICES[S.office].food&&OFFICES[S.office].food.length?[{key:'food',icon:'🍽️',label:'Lunch'}]:[]),
-        ...(isAdmin?[{key:'admin',icon:'\u2699\ufe0f',label:'Admin'}]:[]),
+    ...(hasFood?[{key:'food',icon:'🍽️',label:'Lunch'}]:[]),
+    {key:'pet',icon:'🐾',label:'Bring Your Pet'},
+    ...(isAdmin?[{key:'admin',icon:'\u2699\ufe0f',label:'Admin'}]:[]),
   ];
   return '<div class="sidebar">'+
     '<div class="logo-wrap"><div class="logo-icon" style="background:none;padding:0"><img src="https://raw.githubusercontent.com/susanasaleh-afk/Deskflow/main/gig-logo-mint%20(2).png" style="width:32px;height:32px;object-fit:contain;border-radius:4px"/></div><div class="logo-text">GIG<span> Desk</span></div></div>'+
@@ -832,7 +834,6 @@ function renderSidebar(){
       Object.entries(OFFICES).filter(([nm])=>!HiddenOffices.isHidden(nm)).map(([nm,cfg])=>
         '<button class="office-btn'+(S.office===nm?' active':'')+'" data-office="'+nm+'" style="justify-content:space-between">'+
           '<span style="display:flex;align-items:center;gap:8px"><div class="office-dot" style="background:'+cfg.color+'"></div>'+cfg.flag+' '+nm+'</span>'+
-          (['Barcelona','Toulouse','Malta'].includes(nm)?'<span class="pet-icon" data-office="'+nm+'" title="Bring your pet" style="font-size:14px;cursor:pointer" >🐾</span>':'')+
         '</button>'
       ).join('')+
       (isAdmin?'<div style="padding:4px 10px;margin-top:6px;border-top:1px solid var(--border)">'+
@@ -1673,10 +1674,16 @@ function renderAdmin(){
 function renderModal(){
   var m=S.modal,date=ds(S.dayOffset);
   if(m.type==='pet'){
+    var isPetOffice=['Barcelona','Toulouse','Malta'].includes(m.office);
     return '<div class="modal-overlay" id="mOv"><div class="modal" style="max-width:320px;text-align:center;padding:28px 24px">'+
       '<div style="font-size:14px;font-weight:600;color:var(--text2);margin-bottom:12px">🐾 Bring Your Pet — '+m.office+' office</div>'+
-      '<img src="https://raw.githubusercontent.com/susanasaleh-afk/Deskflow/main/dog.jpg" alt="Coming Soon" style="width:200px;height:auto;border-radius:12px;margin-bottom:14px"/>'+
-      '<div style="font-size:12px;color:var(--text3)">We\'re working on making your office pet-friendly.<br>Stay tuned! 🦴</div>'+
+      (isPetOffice
+        ?'<img src="https://raw.githubusercontent.com/susanasaleh-afk/Deskflow/main/dog.jpg" alt="Coming Soon" style="width:200px;height:auto;border-radius:12px;margin-bottom:14px"/>'+
+          '<div style="font-size:12px;color:var(--text3)">We\'re working on making your office pet-friendly.<br>Stay tuned! 🦴</div>'
+        :'<div style="font-size:48px;margin-bottom:12px">🚫</div>'+
+          '<div style="font-size:14px;font-weight:600;margin-bottom:8px;color:var(--red-dark)">Not available at this location</div>'+
+          '<div style="font-size:12px;color:var(--text3)">Sorry, Bring Your Pet is not available at the '+m.office+' office.</div>'
+      )+
       '<div class="modal-actions" style="margin-top:20px"><button class="btn-secondary" id="mCls">Close</button></div>'+
     '</div></div>';
   }
@@ -1712,11 +1719,14 @@ function renderModal(){
 // ─── BIND ALL ───
 function bindAll(){
   // Nav
-  document.querySelectorAll('.nav-btn[data-view]').forEach(function(b){b.addEventListener('click',function(){setState({view:b.dataset.view,modal:null,editMode:false})})});
+  document.querySelectorAll('.nav-btn[data-view]').forEach(function(b){b.addEventListener('click',function(){
+    if(b.dataset.view==='pet'){setState({modal:{type:'pet',office:S.office}});}
+    else{setState({view:b.dataset.view,modal:null,editMode:false});}
+  })});
   document.querySelectorAll('.office-btn[data-office]').forEach(function(b){b.addEventListener('click',function(){setState({office:b.dataset.office,modal:null,editMode:false})})});
   document.querySelectorAll('[data-hide-office]').forEach(function(b){b.addEventListener('click',function(e){e.stopPropagation();HiddenOffices.toggle(b.dataset.hideOffice);render();})});
   document.querySelectorAll('[data-show-office]').forEach(function(b){b.addEventListener('click',function(e){e.stopPropagation();HiddenOffices.toggle(b.dataset.showOffice);render();})});
-  document.querySelectorAll('.pet-icon').forEach(function(el){el.addEventListener('click',function(e){e.stopPropagation();setState({modal:{type:'pet',office:el.dataset.office}});});});
+  document.querySelectorAll('[data-pet]').forEach(function(b){b.addEventListener('click',function(){setState({modal:{type:'pet',office:S.office}});});});
   document.getElementById('logout-btn')?.addEventListener('click',function(){
     DB.set('user',null);
     Auth.signOut();
