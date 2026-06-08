@@ -570,6 +570,15 @@ function toast(msg,type='success'){
   document.body.appendChild(el);tT=setTimeout(()=>el.remove(),2800);
 }
 
+// ═══ HIDDEN OFFICES ═══
+const HiddenOffices={
+  _key:'hidden_offices',
+  get(){return DB.get(this._key,['Malta','Toulouse'])},
+  set(list){DB.set(this._key,list)},
+  isHidden(name){return this.get().includes(name)},
+  toggle(name){const h=this.get();const i=h.indexOf(name);if(i>-1)h.splice(i,1);else h.push(name);this.set(h);},
+};
+
 // ═══ STATE ═══
 let S={
   user:DB.get('user',null),office:'Marbella',view:'map',dayOffset:0,modal:null,
@@ -820,11 +829,25 @@ function renderSidebar(){
       nav.map(n=>'<button class="nav-btn'+(S.view===n.key?' active':'')+'" data-view="'+n.key+'"><span style="width:18px;text-align:center">'+n.icon+'</span>'+n.label+'</button>').join('')+
     '</div>'+
     '<div class="offices-section"><div class="nav-label" style="padding:0 10px;margin-bottom:6px">Offices</div>'+
-      Object.entries(OFFICES).map(([nm,cfg])=>
-        '<button class="office-btn'+(S.office===nm?' active':'')+'" data-office="'+nm+'">'+
-          '<div class="office-dot" style="background:'+cfg.color+'"></div>'+cfg.flag+' '+nm+
+      Object.entries(OFFICES).filter(([nm])=>!HiddenOffices.isHidden(nm)).map(([nm,cfg])=>
+        '<button class="office-btn'+(S.office===nm?' active':'')+'" data-office="'+nm+'" style="justify-content:space-between">'+
+          '<span style="display:flex;align-items:center;gap:8px"><div class="office-dot" style="background:'+cfg.color+'"></div>'+cfg.flag+' '+nm+'</span>'+
+          (['Barcelona','Toulouse','Malta'].includes(nm)?'<span class="pet-icon" data-office="'+nm+'" title="Bring your pet" style="font-size:14px;cursor:pointer" >🐾</span>':'')+
         '</button>'
       ).join('')+
+      (isAdmin?'<div style="padding:4px 10px;margin-top:6px;border-top:1px solid var(--border)">'+
+        '<div style="font-size:10px;color:var(--text3);margin-bottom:4px;padding-top:4px">Hidden offices</div>'+
+        Object.keys(OFFICES).filter(nm=>HiddenOffices.isHidden(nm)).map(nm=>
+          '<button class="office-btn" data-show-office="'+nm+'" style="color:var(--text3);font-style:italic;font-size:11px">'+
+            '👁 Show '+nm+
+          '</button>'
+        ).join('')+
+        Object.keys(OFFICES).filter(nm=>!HiddenOffices.isHidden(nm)).map(nm=>
+          '<button class="office-btn" data-hide-office="'+nm+'" style="color:var(--text3);font-size:11px">'+
+            '🙈 Hide '+nm+
+          '</button>'
+        ).join('')+
+      '</div>':'')+
     '</div>'+
     '<div class="user-section"><div class="user-card">'+
       '<div class="user-av">'+S.user.initials+'</div>'+
@@ -1649,6 +1672,14 @@ function renderAdmin(){
 }
 function renderModal(){
   var m=S.modal,date=ds(S.dayOffset);
+  if(m.type==='pet'){
+    return '<div class="modal-overlay" id="mOv"><div class="modal" style="max-width:320px;text-align:center;padding:28px 24px">'+
+      '<div style="font-size:14px;font-weight:600;color:var(--text2);margin-bottom:12px">🐾 Bring Your Pet — '+m.office+' office</div>'+
+      '<img src="https://raw.githubusercontent.com/susanasaleh-afk/Deskflow/main/dog.jpg" alt="Coming Soon" style="width:200px;height:auto;border-radius:12px;margin-bottom:14px"/>'+
+      '<div style="font-size:12px;color:var(--text3)">We\'re working on making your office pet-friendly.<br>Stay tuned! 🦴</div>'+
+      '<div class="modal-actions" style="margin-top:20px"><button class="btn-secondary" id="mCls">Close</button></div>'+
+    '</div></div>';
+  }
   var labels={desk:'Desk',room:'Meeting room',parking:'Parking spot'},lbl=labels[m.type];
   var existing=m.type==='room'?BK.isBooked(S.office,date,'room',m.id,m.slot):BK.isBooked(S.office,date,m.type,m.id);
   var cfg=OFFICES[S.office];
@@ -1683,6 +1714,9 @@ function bindAll(){
   // Nav
   document.querySelectorAll('.nav-btn[data-view]').forEach(function(b){b.addEventListener('click',function(){setState({view:b.dataset.view,modal:null,editMode:false})})});
   document.querySelectorAll('.office-btn[data-office]').forEach(function(b){b.addEventListener('click',function(){setState({office:b.dataset.office,modal:null,editMode:false})})});
+  document.querySelectorAll('[data-hide-office]').forEach(function(b){b.addEventListener('click',function(e){e.stopPropagation();HiddenOffices.toggle(b.dataset.hideOffice);render();})});
+  document.querySelectorAll('[data-show-office]').forEach(function(b){b.addEventListener('click',function(e){e.stopPropagation();HiddenOffices.toggle(b.dataset.showOffice);render();})});
+  document.querySelectorAll('.pet-icon').forEach(function(el){el.addEventListener('click',function(e){e.stopPropagation();setState({modal:{type:'pet',office:el.dataset.office}});});});
   document.getElementById('logout-btn')?.addEventListener('click',function(){
     DB.set('user',null);
     Auth.signOut();

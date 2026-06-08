@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Deskflow — Preview</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --green:#1D9E75;--green-bg:#E1F5EE;--green-border:#5DCAA5;--green-dark:#0F6E56;
+  --red:#D85A30;--red-bg:#FAECE7;--red-border:#F0997B;--red-dark:#993C1D;
+  --blue:#185FA5;--blue-bg:#E6F1FB;--blue-border:#85B7EB;
+  --purple:#3C3489;--purple-bg:#EEEDFE;--purple-border:#AFA9EC;
+  --amber:#BA7517;--amber-bg:#fef3c7;--amber-border:#97C459;--amber-dark:#92400e;
+  --border:#e5e7eb;--bg:#f4f5f7;--surface:#fff;
+  --text:#111827;--text2:#6b7280;--text3:#9ca3af;
+  --r:8px;
+  font-family:'DM Sans',system-ui,sans-serif;
+}
+body{background:var(--bg);color:var(--text);min-height:100vh}
+.app{display:flex;height:100vh;overflow:hidden}
+.sidebar{width:220px;background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;flex-shrink:0;overflow-y:auto}
+.logo-wrap{padding:16px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px}
+.logo-text{font-size:16px;font-weight:700}.logo-text span{color:var(--green)}
+.nav-section{padding:10px 8px}
+.nav-label{font-size:10px;color:var(--text3);padding:0 10px;margin-bottom:5px;text-transform:uppercase;letter-spacing:.06em}
+.nav-btn{display:flex;align-items:center;gap:10px;width:100%;padding:9px 10px;border-radius:var(--r);border:none;cursor:pointer;font-size:13px;font-family:inherit;text-align:left;background:none;color:var(--text2)}
+.nav-btn:hover{background:#f3f4f6}
+.nav-btn.active{background:var(--green-bg);color:var(--green-dark);font-weight:600}
+.offices-section{padding:8px;border-top:1px solid var(--border)}
+.office-btn{display:flex;align-items:center;gap:8px;width:100%;padding:7px 10px;border-radius:var(--r);border:none;cursor:pointer;font-size:12px;font-family:inherit;text-align:left;background:none;color:var(--text2);justify-content:space-between}
+.office-btn:hover{background:#f3f4f6}
+.office-btn.active{background:#f3f4f6;color:var(--text);font-weight:600}
+.office-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.user-section{padding:10px 8px;border-top:1px solid var(--border);margin-top:auto}
+.user-card{display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:var(--r);background:#f9fafb;border:1px solid var(--border)}
+.user-av{width:30px;height:30px;border-radius:50%;background:var(--green-bg);color:var(--green-dark);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0}
+.main{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;color:var(--text3);font-size:14px}
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.4);display:flex;align-items:center;justify-content:center;z-index:1000}
+.modal{background:var(--surface);border-radius:var(--r);padding:28px 24px;max-width:320px;width:90%;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,0.2)}
+.btn-secondary{padding:8px 16px;border-radius:var(--r);border:1px solid var(--border);background:var(--surface);cursor:pointer;font-size:13px;font-family:inherit}
+.modal-actions{margin-top:20px;display:flex;justify-content:center}
+.notice{background:#fef9c3;border:1px solid #fde047;border-radius:8px;padding:10px 16px;font-size:12px;color:#713f12;margin:12px;text-align:center}
+</style>
+</head>
+<body>
+<div class="notice">👆 This is a <strong>preview only</strong> — showing sidebar + pet modal behaviour. Click the 🐾 icons and the show/hide buttons to test.</div>
+<div class="app">
+  <div class="sidebar" id="sidebar"></div>
+  <div class="main">← Try clicking offices, 🐾 icons, and show/hide buttons in the sidebar</div>
+</div>
+<div id="modal-container"></div>
+
+<script>
+const OFFICES = {
+  Marbella: {color:'#D85A30', flag:'🇪🇸'},
+  Madrid:   {color:'#7F77DD', flag:'🇪🇸'},
+  Barcelona:{color:'#185FA5', flag:'🇪🇸'},
+  Malta:    {color:'#1D9E75', flag:'🇲🇹'},
+  Toulouse: {color:'#BA7517', flag:'🇫🇷'},
+};
+const PET_OFFICES = ['Barcelona','Toulouse','Malta'];
+const DOG_IMG = 'https://raw.githubusercontent.com/susanasaleh-afk/Deskflow/main/dog.jpg';
+
+let hidden = ['Malta','Toulouse'];
+let activeOffice = 'Marbella';
+const isAdmin = true; // preview as admin
+
+function renderSidebar() {
+  const visible = Object.entries(OFFICES).filter(([nm]) => !hidden.includes(nm));
+  const hiddenList = Object.keys(OFFICES).filter(nm => hidden.includes(nm));
+  const visibleList = Object.keys(OFFICES).filter(nm => !hidden.includes(nm));
+
+  document.getElementById('sidebar').innerHTML =
+    '<div class="logo-wrap"><div class="logo-text">GIG<span> Desk</span></div></div>' +
+    '<div class="nav-section"><div class="nav-label">Workspace</div>' +
+      ['⊞ Floor map','🅿️ Parking','📅 My bookings','🍽️ Lunch','⚙️ Admin'].map((n,i) =>
+        '<button class="nav-btn'+(i===0?' active':'')+'">' + n + '</button>'
+      ).join('') +
+    '</div>' +
+    '<div class="offices-section"><div class="nav-label" style="padding:0 10px;margin-bottom:6px">Offices</div>' +
+      visible.map(([nm, cfg]) =>
+        '<button class="office-btn'+(activeOffice===nm?' active':'')+'" onclick="selectOffice(\''+nm+'\')" >' +
+          '<span style="display:flex;align-items:center;gap:8px">' +
+            '<div class="office-dot" style="background:'+cfg.color+'"></div>'+cfg.flag+' '+nm+
+          '</span>' +
+          (PET_OFFICES.includes(nm) ? '<span class="pet-icon" onclick="showPet(event,\''+nm+'\')" title="Bring your pet" style="font-size:14px;cursor:pointer">🐾</span>' : '') +
+        '</button>'
+      ).join('') +
+      (isAdmin ?
+        '<div style="padding:4px 10px;margin-top:6px;border-top:1px solid var(--border)">' +
+          '<div style="font-size:10px;color:var(--text3);margin-bottom:4px;padding-top:4px">Hidden offices</div>' +
+          hiddenList.map(nm =>
+            '<button class="office-btn" onclick="showOffice(\''+nm+'\')" style="color:var(--green-dark);font-size:11px">👁 Show '+nm+'</button>'
+          ).join('') +
+          '<div style="font-size:10px;color:var(--text3);margin:6px 0 4px">Visible offices</div>' +
+          visibleList.map(nm =>
+            '<button class="office-btn" onclick="hideOffice(\''+nm+'\')" style="color:var(--text3);font-size:11px">🙈 Hide '+nm+'</button>'
+          ).join('') +
+        '</div>'
+      : '') +
+    '</div>' +
+    '<div class="user-section"><div class="user-card">' +
+      '<div class="user-av">SS</div>' +
+      '<div style="flex:1"><div style="font-size:12px;font-weight:600">Susana</div>' +
+      '<div style="font-size:10px;color:var(--text3)">Admin</div></div>' +
+    '</div></div>';
+}
+
+function selectOffice(nm) {
+  activeOffice = nm;
+  renderSidebar();
+}
+
+function showOffice(nm) {
+  hidden = hidden.filter(h => h !== nm);
+  if (activeOffice === nm) activeOffice = 'Marbella';
+  renderSidebar();
+}
+
+function hideOffice(nm) {
+  if (!hidden.includes(nm)) hidden.push(nm);
+  if (activeOffice === nm) activeOffice = Object.keys(OFFICES).find(o => !hidden.includes(o));
+  renderSidebar();
+}
+
+function showPet(e, office) {
+  e.stopPropagation();
+  document.getElementById('modal-container').innerHTML =
+    '<div class="modal-overlay" onclick="closeModal()">' +
+      '<div class="modal" onclick="event.stopPropagation()">' +
+        '<div style="font-size:14px;font-weight:600;color:var(--text2);margin-bottom:12px">🐾 Bring Your Pet — '+office+' office</div>' +
+        '<img src="'+DOG_IMG+'" alt="Coming Soon" style="width:200px;height:auto;border-radius:12px;margin-bottom:14px" onerror="this.style.display=\'none\'"/>' +
+        '<div style="font-size:12px;color:var(--text3)">We\'re working on making your office pet-friendly.<br>Stay tuned! 🦴</div>' +
+        '<div class="modal-actions"><button class="btn-secondary" onclick="closeModal()">Close</button></div>' +
+      '</div>' +
+    '</div>';
+}
+
+function closeModal() {
+  document.getElementById('modal-container').innerHTML = '';
+}
+
+renderSidebar();
+</script>
+</body>
+</html>
