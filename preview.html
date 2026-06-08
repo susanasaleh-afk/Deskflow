@@ -48,7 +48,7 @@ body{background:var(--bg);color:var(--text);min-height:100vh}
 <div class="notice">👆 This is a <strong>preview only</strong> — showing sidebar + pet modal behaviour. Click the 🐾 icons and the show/hide buttons to test.</div>
 <div class="app">
   <div class="sidebar" id="sidebar"></div>
-  <div class="main">← Try clicking offices, 🐾 icons, and show/hide buttons in the sidebar</div>
+  <div class="main">← Switch offices to see the nav change. Click 🐾 Bring Your Pet to see the modal.</div>
 </div>
 <div id="modal-container"></div>
 
@@ -61,7 +61,20 @@ const OFFICES = {
   Toulouse: {color:'#BA7517', flag:'🇫🇷'},
 };
 const PET_OFFICES = ['Barcelona','Toulouse','Malta'];
+const PARKING_OFFICES = ['Marbella'];
 const DOG_IMG = 'https://raw.githubusercontent.com/susanasaleh-afk/Deskflow/main/dog.jpg';
+
+function getNav(office) {
+  const nav = [
+    {icon:'⊞', label:'Floor map'},
+    {icon:'📅', label:'My bookings'},
+    {icon:'🍽️', label:'Lunch'},
+  ];
+  if (PARKING_OFFICES.includes(office)) nav.splice(1,0,{icon:'🅿️', label:'Parking'});
+  if (PET_OFFICES.includes(office)) nav.splice(-1,0,{icon:'🐾', label:'Bring Your Pet', pet:true});
+  nav.push({icon:'⚙️', label:'Admin'});
+  return nav;
+}
 
 let hidden = ['Malta','Toulouse'];
 let activeOffice = 'Marbella';
@@ -75,8 +88,10 @@ function renderSidebar() {
   document.getElementById('sidebar').innerHTML =
     '<div class="logo-wrap"><div class="logo-text">GIG<span> Desk</span></div></div>' +
     '<div class="nav-section"><div class="nav-label">Workspace</div>' +
-      ['⊞ Floor map','🅿️ Parking','📅 My bookings','🍽️ Lunch','⚙️ Admin'].map((n,i) =>
-        '<button class="nav-btn'+(i===0?' active':'')+'">' + n + '</button>'
+      getNav(activeOffice).map((n,i) =>
+        '<button class="nav-btn'+(i===0?' active':'')+'" onclick="'+( n.pet ? 'showPet(event,\''+activeOffice+'\')' : '')+'">' +
+          '<span style="width:18px;text-align:center">'+n.icon+'</span>'+n.label+
+        '</button>'
       ).join('') +
     '</div>' +
     '<div class="offices-section"><div class="nav-label" style="padding:0 10px;margin-bottom:6px">Offices</div>' +
@@ -85,7 +100,6 @@ function renderSidebar() {
           '<span style="display:flex;align-items:center;gap:8px">' +
             '<div class="office-dot" style="background:'+cfg.color+'"></div>'+cfg.flag+' '+nm+
           '</span>' +
-          (PET_OFFICES.includes(nm) ? '<span class="pet-icon" onclick="showPet(event,\''+nm+'\')" title="Bring your pet" style="font-size:14px;cursor:pointer">🐾</span>' : '') +
         '</button>'
       ).join('') +
       (isAdmin ?
