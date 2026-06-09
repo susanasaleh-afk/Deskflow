@@ -438,7 +438,6 @@ async function getToken(){
   })();
   try{return await _tokenPromise;}finally{_tokenPromise=null;}
 }
-}
 
 async function api(path, method='GET', body=null, params=null){
   let url='/api/'+path;
