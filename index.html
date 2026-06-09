@@ -414,24 +414,30 @@ function getMSALIdentity(){
   };
 }
 
+let _tokenPromise=null;
 async function getToken(){
   if(Auth._cachedToken){
     try{
       const p=JSON.parse(atob(Auth._cachedToken.split('.')[1]));
-      if(p.exp > Date.now()/1000) return Auth._cachedToken;
+      if(p.exp > Date.now()/1000+30) return Auth._cachedToken;
     }catch(e){}
   }
-  try{
-    const account=Auth._account||_msal.getActiveAccount()||(_msal.getAllAccounts()||[])[0];
-    if(account){
-      // MSAL 3.x acquireTokenSilent works with await
-      const resp=await _msal.acquireTokenSilent({scopes:['openid'],account});
-      if(resp?.idToken){Auth._cachedToken=resp.idToken;return resp.idToken;}
+  // deduplicate concurrent token requests — only one acquireTokenSilent at a time
+  if(_tokenPromise) return _tokenPromise;
+  _tokenPromise=(async()=>{
+    try{
+      const account=Auth._account||_msal.getActiveAccount()||(_msal.getAllAccounts()||[])[0];
+      if(account){
+        const resp=await _msal.acquireTokenSilent({scopes:['openid'],account});
+        if(resp?.idToken){Auth._cachedToken=resp.idToken;return resp.idToken;}
+      }
+    }catch(e){
+      console.warn('getToken failed:',e.message);
     }
-  }catch(e){
-    console.warn('getToken failed:',e.message);
-  }
-  return null;
+    return null;
+  })();
+  try{return await _tokenPromise;}finally{_tokenPromise=null;}
+}
 }
 
 async function api(path, method='GET', body=null, params=null){
@@ -1755,6 +1761,7 @@ function bindAll(){
     if(sidebar)sidebar.classList.remove('open');
     var ov=document.getElementById('mobile-overlay');
     if(ov)ov.style.display='none';
+    getToken(); // pre-warm token so it's ready before API call
     setState({office:b.dataset.office,modal:null,editMode:false});
   })});
   document.querySelectorAll('[data-hide-office]').forEach(function(b){b.addEventListener('click',function(e){e.stopPropagation();HiddenOffices.toggle(b.dataset.hideOffice);render();})});
