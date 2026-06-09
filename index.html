@@ -802,7 +802,7 @@ function render(){
     (S.view!=='mybookings'?renderCalBar():'')+
     '<div class="content" id="content">'+renderContent()+'</div></div></div>'+
     (S.modal?renderModal():'');
-  bindAll();
+  requestAnimationFrame(function(){setTimeout(bindAll,0);});
   }catch(e){root.innerHTML='<div style="padding:20px;font-size:14px;color:red"><b>Error:</b> '+e.message+'<br>Stack: '+e.stack+'</div>';}
 }
 
