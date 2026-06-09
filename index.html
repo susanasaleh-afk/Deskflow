@@ -587,8 +587,26 @@ let S={
 async function setState(p){
   Object.assign(S,p);
   if(p.office) DB.set('user_office', p.office);
-  if(S.user && (p.office || p.dayOffset !== undefined)){
-    await BK.loadOD(S.office, ds(S.dayOffset||0));
+  if(p.office){
+    // show loading immediately so mobile doesn't appear frozen
+    render();
+    try{
+      await Promise.race([
+        BK.loadOD(S.office, ds(S.dayOffset||0)),
+        new Promise((_,reject)=>setTimeout(()=>reject(new Error('timeout')),8000))
+      ]);
+    }catch(e){
+      console.warn('loadOD failed:',e.message);
+    }
+  } else if(S.user && p.dayOffset !== undefined){
+    try{
+      await Promise.race([
+        BK.loadOD(S.office, ds(S.dayOffset||0)),
+        new Promise((_,reject)=>setTimeout(()=>reject(new Error('timeout')),8000))
+      ]);
+    }catch(e){
+      console.warn('loadOD failed:',e.message);
+    }
   }
   render();
 }
@@ -1723,7 +1741,13 @@ function bindAll(){
     if(b.dataset.view==='pet'){setState({modal:{type:'pet',office:S.office}});}
     else{setState({view:b.dataset.view,modal:null,editMode:false});}
   })});
-  document.querySelectorAll('.office-btn[data-office]').forEach(function(b){b.addEventListener('click',function(){setState({office:b.dataset.office,modal:null,editMode:false})})});
+  document.querySelectorAll('.office-btn[data-office]').forEach(function(b){b.addEventListener('click',function(){
+    var sidebar=document.querySelector('.sidebar');
+    if(sidebar)sidebar.classList.remove('open');
+    var ov=document.getElementById('mobile-overlay');
+    if(ov)ov.style.display='none';
+    setState({office:b.dataset.office,modal:null,editMode:false});
+  })});
   document.querySelectorAll('[data-hide-office]').forEach(function(b){b.addEventListener('click',function(e){e.stopPropagation();HiddenOffices.toggle(b.dataset.hideOffice);render();})});
   document.querySelectorAll('[data-show-office]').forEach(function(b){b.addEventListener('click',function(e){e.stopPropagation();HiddenOffices.toggle(b.dataset.showOffice);render();})});
   document.querySelectorAll('[data-pet]').forEach(function(b){b.addEventListener('click',function(){setState({modal:{type:'pet',office:S.office}});});});
