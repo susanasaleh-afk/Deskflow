@@ -864,7 +864,7 @@ function renderSidebar(){
     '<div class="offices-section"><div class="nav-label" style="padding:0 10px;margin-bottom:6px">Offices</div>'+
       Object.entries(OFFICES).filter(([nm])=>!HiddenOffices.isHidden(nm)).map(([nm,cfg])=>
         '<button class="office-btn'+(S.office===nm?' active':'')+'" data-office="'+nm+'" style="justify-content:space-between">'+
-          '<span style="display:flex;align-items:center;gap:8px"><div class="office-dot" style="background:'+cfg.color+'"></div>'+cfg.flag+' '+nm+'</span>'+
+          '<span style="display:flex;align-items:center;gap:8px"><div class="office-dot" style="background:'+cfg.color+'"></div>'+cfg.flag+' '+nm+(['Barcelona','Toulouse','Malta'].includes(nm)?' 🐾':'')+'</span>'+
         '</button>'
       ).join('')+
       (isAdmin?'<div style="padding:4px 10px;margin-top:6px;border-top:1px solid var(--border)">'+
