@@ -1218,6 +1218,7 @@ function renderMadrid(cfg,D){
     var el=D(id);
     el=el.replace('class="desk desk-available"','class="desk desk-available" style="background:#FEF9E7!important;border-color:#E67E22!important;color:#E67E22!important"');
     el=el.replace('class="desk desk-fixed"','class="desk desk-fixed" style="background:#FEF9E7!important;border-color:#E67E22!important;color:#E67E22!important"');
+    el=el.replace(' data-desk="'+id+'"','');
     if(custom){el=el.replace('>'+id+'<','>'+displayName+'<');el=el.replace('>'+id+' ✓<','>'+displayName+' ✓<');}
     return el;
   };
