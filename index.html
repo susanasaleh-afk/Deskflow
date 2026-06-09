@@ -1860,23 +1860,26 @@ function bindAll(){
       if(desk&&Math.abs(e.changedTouches[0].clientX-(desk._tx||0))<10)desk.click();
     },{passive:true});
   }
-  document.querySelectorAll('.desk[data-desk]').forEach(function(el){
-  el.addEventListener('click',function(){
-    if(S.editMode)return;
-    var id=el.dataset.desk,cfg=OFFICES[S.office],date=ds(S.dayOffset);
-    var fix=!!cfg.fixedDesks[id],freed=fix&&FF.isFree(S.office,id,date);
-    var rec=!fix&&!!RF.person(S.office,id,date)&&!FF.isFree(S.office,id,date);
-    var fixedName=cfg.fixedDesks[id]||'';
-    var isMyFixed=fix&&fixedName.length>0&&(
-      fixedName===S.user.name||
-      fixedName.split(' ')[0]===S.user.name.split(' ')[0]
-    );
-    var deskEl=el;
-    var isMineClass=deskEl.classList.contains('desk-mine');
-    if(fix&&!freed&&!isMyFixed&&!isMineClass)return;
-    if(rec&&!isMyFixed&&!isMineClass)return;
-    setState({modal:{type:'desk',id}});
-  })});
+  // Delegated click for desks — one listener on canvas instead of one per desk
+  document.querySelectorAll('.map-canvas').forEach(function(mapCanvas){
+    mapCanvas.addEventListener('click',function(e){
+      var el=e.target.closest('.desk[data-desk]');
+      if(!el)return;
+      if(S.editMode)return;
+      var id=el.dataset.desk,cfg=OFFICES[S.office],date=ds(S.dayOffset);
+      var fix=!!cfg.fixedDesks[id],freed=fix&&FF.isFree(S.office,id,date);
+      var rec=!fix&&!!RF.person(S.office,id,date)&&!FF.isFree(S.office,id,date);
+      var fixedName=cfg.fixedDesks[id]||'';
+      var isMyFixed=fix&&fixedName.length>0&&(
+        fixedName===S.user.name||
+        fixedName.split(' ')[0]===S.user.name.split(' ')[0]
+      );
+      var isMineClass=el.classList.contains('desk-mine');
+      if(fix&&!freed&&!isMyFixed&&!isMineClass)return;
+      if(rec&&!isMyFixed&&!isMineClass)return;
+      setState({modal:{type:'desk',id}});
+    });
+  });
   // Mobile map touch scroll
 
   // User Management collapsible
