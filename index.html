@@ -1068,9 +1068,9 @@ function renderFloorMap(){
     '<div class="stat-card"><div class="stat-lbl">Occupancy</div><div class="stat-val">'+Math.round((booked/Math.max(total,1))*100)+'%</div></div>'+
     '<div class="stat-card"><div class="stat-lbl">Fixed</div><div class="stat-val">'+Object.keys(cfg.fixedDesks||{}).length+'</div></div>'+
   '</div>'+
-  (myDesk?'<div class="banner banner-green"><span class="banner-text">'+(ci?'\u2713 Checked in at desk':'Desk')+' <strong>'+deskLabel(myDesk.resourceId)+'</strong>'+(ci?' at '+ci.at:' booked today.')+'</span>'+
+  (myDesk?'<div class="banner banner-green"><span class="banner-text">'+(ci?'\u2713 Checked in at desk':'Desk')+' <strong>'+deskLabel(myDesk.resourceId)+'</strong>'+(ci?' at '+ci.at:' booked'+(S.dayOffset===0?' today.':' on '+date+'.'))+'</span>'+
     (ci?'<button class="banner-btn" id="checkout-btn" data-desk="'+myDesk.resourceId+'" data-date="'+date+'">Check out</button>':
-        '<div style="display:flex;gap:6px"><button class="banner-btn" id="checkin-btn" data-desk="'+myDesk.resourceId+'" data-date="'+date+'">Check in</button><button class="banner-btn" style="background:transparent;color:var(--green-dark);border:1px solid var(--green-border)" data-cancel="'+myDesk.id+'">Cancel</button></div>')+
+        '<div style="display:flex;gap:6px">'+(S.dayOffset===0?'<button class="banner-btn" id="checkin-btn" data-desk="'+myDesk.resourceId+'" data-date="'+date+'">Check in</button>':'')+'<button class="banner-btn" style="background:transparent;color:var(--green-dark);border:1px solid var(--green-border)" data-cancel="'+myDesk.id+'">Cancel</button></div>')+
   '</div>':'')+
   (S.user&&AdminState.get()&&window.innerWidth>768?editBar:'')+'<div class="map-scroll-wrap" style="overflow:scroll;-webkit-overflow-scrolling:touch;width:100%;height:60vh;position:relative;">'+mapHtml+'</div>'+
   '<div class="legend">'+
@@ -1743,7 +1743,7 @@ function renderModal(){
     '<div class="modal-actions">'+
       '<button class="btn-secondary" id="mCls">Close</button>'+
       (isMine&&existing?'<button class="btn-danger" id="mCan" data-bid="'+existing.id+'">Cancel booking</button>':'')+
-      ((isMine||isMyFixed)&&m.type==='desk'&&!CI.get(S.office,m.id,date)?'<button class="btn-primary" id="mCI">✓ Check in</button>':'')+
+      ((isMine||isMyFixed)&&m.type==='desk'&&!CI.get(S.office,m.id,date)&&S.dayOffset===0?'<button class="btn-primary" id="mCI">✓ Check in</button>':'')+
       ((isMine||isMyFixed)&&m.type==='desk'&&CI.get(S.office,m.id,date)?'<span style="color:var(--green);font-size:13px">✓ Checked in</span><button class="btn-secondary" id="mCO" style="margin-left:8px">Check out</button>':'')+
       (!existing&&!isMyFixed&&m.type!=='room'?'<button class="btn-primary" id="mCnf">Book</button>':'')+
     '</div></div></div>';
