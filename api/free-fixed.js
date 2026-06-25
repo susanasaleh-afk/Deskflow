@@ -20,7 +20,6 @@ module.exports = async function handler(req, res) {
   }
 
   const callerIsAdmin = await isAdmin(supabase, caller.id);
-  if (!callerIsAdmin) return res.status(403).json({ error: 'Forbidden: admin required' });
 
   try {
     if (req.method === 'GET') {
@@ -31,6 +30,8 @@ module.exports = async function handler(req, res) {
       if (error) throw error;
       return res.status(200).json(data);
     }
+
+    if (!callerIsAdmin) return res.status(403).json({ error: 'Forbidden: admin required' });
     if (req.method === 'POST') {
       const { office, desk_id, dt } = req.body;
       const { data, error } = await supabase.from('free_fixed').upsert(
