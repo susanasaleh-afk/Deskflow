@@ -835,7 +835,11 @@ function bindLogin(){
         await BK.loadOD(user.office||'Marbella',ds(0));
         await BK.loadUser(user.id);
         try{var od=await api('offices');od.forEach(function(o){OFFICES[o.id]=Object.assign({},o.config,{color:o.color,flag:o.flag,layout:o.layout});});}catch(e){}
-        setState({user,office:user.office||'Marbella'});
+        if(!user.office){
+          await showOfficePicker(user);
+        } else {
+          setState({user,office:user.office});
+        }
       }
     }catch(e){
       console.error('Login failed:',e);
@@ -2138,6 +2142,41 @@ if(DB.get('appver','')!=='v37'){
   DB.set('appver','v37');
 }
 
+// ═══ OFFICE PICKER ═══
+function showOfficePicker(user){
+  return new Promise(function(resolve){
+    var root=document.getElementById('app');
+    var offices=Object.keys(OFFICES);
+    root.innerHTML=
+      '<div style="display:flex;align-items:center;justify-content:center;height:100vh;background:var(--bg)">'+
+      '<div style="background:#fff;border-radius:12px;padding:32px 28px;max-width:360px;width:90%;text-align:center;box-shadow:0 8px 40px rgba(0,0,0,0.12)">'+
+        '<img src="https://raw.githubusercontent.com/susanasaleh-afk/Deskflow/main/gig-logo-mint%20(2).png" style="width:48px;height:48px;object-fit:contain;margin-bottom:16px"/>'+
+        '<div style="font-size:18px;font-weight:700;margin-bottom:6px">Welcome, '+user.name.split(' ')[0]+'!</div>'+
+        '<div style="font-size:13px;color:var(--text2);margin-bottom:24px">Which office do you work from?</div>'+
+        '<div style="display:flex;flex-direction:column;gap:8px">'+
+          offices.map(function(nm){
+            var cfg=OFFICES[nm];
+            return '<button class="office-pick-btn" data-office="'+nm+'" style="display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:8px;border:1.5px solid var(--border);background:#fff;cursor:pointer;font-size:14px;font-family:inherit;font-weight:500">'+
+              '<div style="width:10px;height:10px;border-radius:50%;background:'+cfg.color+';flex-shrink:0"></div>'+
+              cfg.flag+' '+nm+
+            '</button>';
+          }).join('')+
+        '</div>'+
+      '</div></div>';
+    root.querySelectorAll('.office-pick-btn').forEach(function(btn){
+      btn.addEventListener('click',async function(){
+        var office=btn.dataset.office;
+        user.office=office;
+        try{await api('users','POST',{id:user.id,office,name:user.name,email:user.email});}catch(e){console.warn('office save failed',e);}
+        DB.set('user',user);
+        await BK.loadOD(office,ds(0));
+        setState({user,office});
+        resolve();
+      });
+    });
+  });
+}
+
 // ═══ INIT ═══
 async function initApp(){
   render(); // show login immediately
@@ -2152,7 +2191,11 @@ async function initApp(){
     await Promise.all([FF.load(), RF.load(), CI.load(), USERS.load()]);
     await BK.loadOD(user.office||'Marbella', ds(0));
     await BK.loadUser(user.id);
-    setState({user, office: user.office||'Marbella'});
+    if(!user.office){
+      await showOfficePicker(user);
+    } else {
+      setState({user, office: user.office});
+    }
   }
 }
 
