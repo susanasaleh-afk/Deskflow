@@ -286,21 +286,19 @@ const Auth={
 // Admins loaded from Supabase
 // Tamper-proof admin check
 const AdminState=(function(){
-  let _isAdmin=false;
-  let _set=false;
+  let _isAdmin=DB.get('is_admin',false);
   return {
-    _init(val){if(!_set){_isAdmin=val===true;_set=true;}},
-    _load(val){_isAdmin=val===true;},
+    _init(val){_isAdmin=val===true;DB.set('is_admin',_isAdmin);},
+    _load(val){_isAdmin=val===true;DB.set('is_admin',_isAdmin);},
     get(){return _isAdmin;}
   };
 })();
 
 const SuperAdminState=(function(){
-  let _isSuperAdmin=false;
-  let _set=false;
+  let _isSuperAdmin=DB.get('is_superadmin',false);
   return {
-    _init(val){if(!_set){_isSuperAdmin=val===true;_set=true;}},
-    _load(val){_isSuperAdmin=val===true;},
+    _init(val){_isSuperAdmin=val===true;DB.set('is_superadmin',_isSuperAdmin);},
+    _load(val){_isSuperAdmin=val===true;DB.set('is_superadmin',_isSuperAdmin);},
     get(){return _isSuperAdmin;}
   };
 })();
