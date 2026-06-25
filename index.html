@@ -286,20 +286,20 @@ const Auth={
 // Admins loaded from Supabase
 // Tamper-proof admin check
 const AdminState=(function(){
-  let _isAdmin=DB.get('is_admin',false);
+  let _isAdmin=false;
   return {
     _init(val){_isAdmin=val===true;DB.set('is_admin',_isAdmin);},
     _load(val){_isAdmin=val===true;DB.set('is_admin',_isAdmin);},
-    get(){return _isAdmin;}
+    get(){if(!_isAdmin)_isAdmin=DB.get('is_admin',false);return _isAdmin;}
   };
 })();
 
 const SuperAdminState=(function(){
-  let _isSuperAdmin=DB.get('is_superadmin',false);
+  let _isSuperAdmin=false;
   return {
     _init(val){_isSuperAdmin=val===true;DB.set('is_superadmin',_isSuperAdmin);},
     _load(val){_isSuperAdmin=val===true;DB.set('is_superadmin',_isSuperAdmin);},
-    get(){return _isSuperAdmin;}
+    get(){if(!_isSuperAdmin)_isSuperAdmin=DB.get('is_superadmin',false);return _isSuperAdmin;}
   };
 })();
 
