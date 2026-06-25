@@ -1533,7 +1533,7 @@ function renderAdmin(){
     (rf.length>0?'<div style="border-top:1px solid var(--border);padding-top:10px">'+
       '<div style="font-size:12px;font-weight:600;margin-bottom:6px">Active recurring</div>'+
       rf.map(function(r){var dn=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];var days=Array.isArray(r.days)?r.days:(typeof r.days==='string'?JSON.parse(r.days):[]);return'<div style="display:flex;align-items:center;gap:8px;padding:6px 10px;background:#f9fafb;border:1px solid var(--border);border-radius:var(--r);margin-bottom:4px"><span style="flex:1;font-size:12px"><strong>'+r.person+'</strong> &middot; '+(r.desk_id||r.deskId)+' &middot; '+r.office+' &middot; '+days.map(function(d){return dn[d]}).join(', ')+'</span><button class="cancel-btn rfRm" data-office="'+r.office+'" data-desk="'+(r.desk_id||r.deskId)+'">Remove</button></div>'}).join('')+
-    '</div>':'')+
+    '</div>':'<div style="border-top:1px solid var(--border);padding-top:10px;font-size:12px;color:var(--text3)">No recurring fixed desks set.</div>')+
   '</div>'+
   // No-show report
   (function(){
