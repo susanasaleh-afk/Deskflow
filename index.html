@@ -537,6 +537,12 @@ const BK={
     if(b)await this.loadOD(b.office,b.date);
     if(S.user)await this.loadUser(S.user.id);
   },
+  async move(id,newDeskId){
+    const b=Object.values(this._d).flat().find(x=>x.id===id);
+    await api('bookings','PATCH',{id,resource_id:newDeskId});
+    if(b)await this.loadOD(b.office,b.date);
+    if(S.user)await this.loadUser(S.user.id);
+  },
   async allBookings(){await this.loadAll();return this._ad||[];},
   _userCache:[],_allCache:null,
 };
@@ -1599,6 +1605,23 @@ function renderAdmin(){
         (cis.length>0?'<div style="font-size:12px;font-weight:600;margin-bottom:6px;color:var(--green-dark);margin-top:10px">Checked in:</div>'+cis.map(function(c){return'<div style="padding:5px 10px;background:var(--green-bg);border:1px solid var(--green-border);border-radius:var(--r);margin-bottom:3px;font-size:12px;color:var(--green-dark)"><strong>'+c.userName+'</strong> &middot; Desk '+deskLabel(c.deskId)+' &middot; '+c.at+'</div>'}).join(''):'')
       )+'</div>';
   })();
+  // Move booking panel
+  var todayDeskBK=BK.forOD(S.office,ds(S.dayOffset)).filter(function(b){return b.type==='desk'});
+  var html_mv='<div class="card">'+
+    '<div class="card-header"><div class="card-title">↔️ Move booking</div></div>'+
+    '<p style="font-size:13px;color:var(--text2);margin-bottom:14px">Move someone\'s desk booking to a different desk.</p>'+
+    (todayDeskBK.length===0?'<div style="font-size:13px;color:var(--text3)">No desk bookings for '+S.office+' on this day.</div>':
+      '<div style="display:grid;grid-template-columns:1fr 1fr auto;gap:8px;align-items:end">'+
+        '<div><div style="font-size:10px;color:var(--text3);text-transform:uppercase;margin-bottom:3px">Current booking</div>'+
+          '<select id="mvBk" style="width:100%;padding:8px;border:1px solid var(--border);border-radius:var(--r);font-size:12px;font-family:inherit;background:var(--bg)">'+
+            todayDeskBK.map(function(b){return'<option value="'+b.id+'">'+b.userName+' &mdash; Desk '+deskLabel(b.resourceId)+'</option>'}).join('')+
+          '</select></div>'+
+        '<div><div style="font-size:10px;color:var(--text3);text-transform:uppercase;margin-bottom:3px">Move to desk</div>'+
+          '<input id="mvDesk" type="text" placeholder="e.g. H5" style="width:100%;padding:8px;border:1px solid var(--border);border-radius:var(--r);font-size:12px;font-family:inherit;background:var(--bg)"/>'+
+        '</div>'+
+        '<button id="mvBtn" class="btn-primary" style="padding:8px 14px">Move</button>'+
+      '</div>')+
+  '</div>';
   var html_um='<div class="card" style="margin-top:16px">'+
     '<div class="card-header" style="cursor:pointer;display:flex;justify-content:space-between;align-items:center" id="um-toggle">'+
     '<div class="card-title">&#128101; User Management</div>'+
@@ -1754,7 +1777,7 @@ function renderAdmin(){
   })();
 
   var html_active_users='<div class="card" style="margin-top:16px">'+'<div class="card-header" style="cursor:pointer;display:flex;justify-content:space-between;align-items:center" id="au-toggle">'+'<div class="card-title">\ud83d\udc65 Active Users ('+DEMO_USERS.length+')</div>'+'<span id="au-chevron" style="font-size:12px;color:var(--text3)">&#9660; Show</span>'+'</div>'+'<div id="au-list" style="display:none">'+'<div style="display:flex;flex-direction:column;gap:4px">'+DEMO_USERS.map(function(u){return'<div style="display:flex;align-items:center;gap:8px;padding:7px 10px;border-radius:var(--r);border:1px solid var(--border)">'+'<div style="width:28px;height:28px;border-radius:50%;background:var(--green-bg);color:var(--green-dark);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700">'+u.initials+'</div>'+'<div style="flex:1"><div style="font-size:13px;font-weight:600">'+u.name+'</div></div>'+(u.is_admin===true?'<span style="font-size:10px;background:var(--amber-bg);color:var(--amber);border:1px solid var(--amber-border);padding:2px 7px;border-radius:20px;font-weight:600">ADMIN</span>':'')+'</div>'}).join('')+'</div></div></div>';
-  return debugHtml+ra_orig+html_report+html_active_users+html_um;
+  return debugHtml+ra_orig+html_mv+html_report+html_active_users+html_um;
 }
 function renderModal(){
   var m=S.modal,date=ds(S.dayOffset);
@@ -2055,6 +2078,12 @@ function bindAll(){
     RF.remove(btn.dataset.office,btn.dataset.desk).then(()=>{toast('Removed');render();});
   })});
   // Fixed desk management
+  document.getElementById('mvBtn')?.addEventListener('click',function(){
+    var id=document.getElementById('mvBk')?.value;
+    var newDesk=document.getElementById('mvDesk')?.value?.trim().toUpperCase();
+    if(!id||!newDesk){toast('Select a booking and enter a desk','error');return;}
+    BK.move(id,newDesk).then(function(){toast('Booking moved to desk '+newDesk+' ✓');render();}).catch(function(e){toast(e.message||'Error','error');});
+  });
   document.getElementById('fdAdd')?.addEventListener('click',function(){
     var office=document.getElementById('fdOff')?.value;
     var deskId=document.getElementById('fdDesk')?.value?.trim().toUpperCase();
