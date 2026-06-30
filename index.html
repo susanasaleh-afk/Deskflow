@@ -1229,14 +1229,14 @@ function renderMadrid(cfg,D){
     return el;
   };
   var MAD_ZONES={H12:'hr',R14:'hr',R15:'hr',H10:'design',H11:'design',R17:'design',R7:'training',R8:'training',R9:'training',R10:'training',R11:'training',R12:'training'};
-  var MAD_ZONE_COLORS={hr:{bg:'#FFC5FF',border:'#D070D0',text:'#6A006A'},design:{bg:'#FDFCD3',border:'#D4C800',text:'#5A5000'},training:{bg:'#FDDCC3',border:'#E09050',text:'#7A3000'}};
+  var MAD_ZONE_COLORS={hr:{bg:'#FFD6E7',border:'#F48FB1',text:'#880E4F'},design:{bg:'#FDFCD3',border:'#D4C800',text:'#5A5000'},training:{bg:'#FDDCC3',border:'#E09050',text:'#7A3000'}};
   var DZ=function(id){
     var el=DM(id);
     if(S.editMode)return el;
     var zone=MAD_ZONES[id];
     var zc=zone?MAD_ZONE_COLORS[zone]:{bg:'#BDF5EA',border:'#2AB8A0',text:'#0A4A42'};
     el=el.replace('class="desk desk-available"','class="desk desk-available" style="background:'+zc.bg+'!important;border-color:'+zc.border+'!important;color:'+zc.text+'!important"');
-    el=el.replace('class="desk desk-booked"','class="desk desk-booked" style="background:#C5BFBF!important;border-color:#A09A9A!important;color:#3A3535!important"');
+    el=el.replace('class="desk desk-booked"','class="desk desk-booked" style="background:#BEBEBE!important;border-color:#999999!important;color:#333333!important"');
     return el;
   };
   var html='<div id="map-canvas-'+o+'" class="map-canvas'+(S.editMode?' edit-on':'')+'" style="min-height:560px;min-width:620px">';
@@ -1256,10 +1256,11 @@ function renderMadrid(cfg,D){
   (cfg.phonebooths||[]).forEach(function(id,i){html+=makeEl(o,'mad-'+id,4+(i*52),438,DPB(id))});
   html+=makeEl(o,'mad-allhands',4,490,makeZone(o,'allhands',EL.get(o,'allhands','All Hands'),'#EAF3DE','#97C459','#3B6D11',350,32,true,0));
   // Zone legend
-  html+='<div style="position:absolute;right:8px;top:8px;display:flex;flex-direction:column;gap:4px;pointer-events:none">'+
-    '<div style="display:flex;align-items:center;gap:5px;font-size:10px;font-weight:600;color:#6A006A"><div style="width:12px;height:12px;border-radius:3px;background:#FFC5FF;border:1.5px solid #D070D0"></div>HR</div>'+
-    '<div style="display:flex;align-items:center;gap:5px;font-size:10px;font-weight:600;color:#5A5000"><div style="width:12px;height:12px;border-radius:3px;background:#FDFCD3;border:1.5px solid #D4C800"></div>Design</div>'+
-    '<div style="display:flex;align-items:center;gap:5px;font-size:10px;font-weight:600;color:#7A3000"><div style="width:12px;height:12px;border-radius:3px;background:#FDDCC3;border:1.5px solid #E09050"></div>Training</div>'+
+  html+='<div style="position:absolute;left:4px;bottom:36px;display:flex;flex-direction:row;gap:10px;pointer-events:none;background:rgba(255,255,255,0.85);padding:4px 8px;border-radius:6px;border:1px solid #e0e0e0">'+
+    '<div style="display:flex;align-items:center;gap:4px;font-size:10px;font-weight:600;color:#880E4F"><div style="width:12px;height:12px;border-radius:3px;background:#FFD6E7;border:1.5px solid #F48FB1"></div>HR</div>'+
+    '<div style="display:flex;align-items:center;gap:4px;font-size:10px;font-weight:600;color:#5A5000"><div style="width:12px;height:12px;border-radius:3px;background:#FDFCD3;border:1.5px solid #D4C800"></div>Design</div>'+
+    '<div style="display:flex;align-items:center;gap:4px;font-size:10px;font-weight:600;color:#7A3000"><div style="width:12px;height:12px;border-radius:3px;background:#FDDCC3;border:1.5px solid #E09050"></div>Training</div>'+
+    '<div style="display:flex;align-items:center;gap:4px;font-size:10px;font-weight:600;color:#555"><div style="width:12px;height:12px;border-radius:3px;background:#BEBEBE;border:1.5px solid #999"></div>Booked</div>'+
   '</div>';
   html+='</div>';
   return html;
