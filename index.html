@@ -1228,27 +1228,38 @@ function renderMadrid(cfg,D){
     if(custom){el=el.replace('>'+id+'<','>'+displayName+'<');el=el.replace('>'+id+' ✓<','>'+displayName+' ✓<');}
     return el;
   };
+  var MAD_ZONES={H12:'hr',R14:'hr',R15:'hr',H10:'design',H11:'design',R17:'design',R7:'training',R8:'training',R9:'training',R10:'training',R11:'training',R12:'training'};
+  var MAD_ZONE_COLORS={hr:{bg:'#F3E8FF',border:'#9B59B6',text:'#6C3483'},design:{bg:'#FEF3E2',border:'#E67E22',text:'#A04000'},training:{bg:'#E8F8F5',border:'#27AE60',text:'#1E8449'}};
+  var DZ=function(id){
+    var zone=MAD_ZONES[id];
+    if(!zone||S.editMode)return DM(id);
+    var el=DM(id);
+    var zc=MAD_ZONE_COLORS[zone];
+    el=el.replace('class="desk desk-available"','class="desk desk-available" style="background:'+zc.bg+';border-color:'+zc.border+';color:'+zc.text+'"');
+    return el;
+  };
   var html='<div id="map-canvas-'+o+'" class="map-canvas'+(S.editMode?' edit-on':'')+'" style="min-height:560px;min-width:620px">';
   html+=makeEl(o,'mad-mr1', 4,  4,  makeZone(o,'mr1',      EL.get(o,'mr1','Meeting Room 1'),'#FFF8E7','#E8C97A','#8A6A00',106,44,false,0));
   html+=makeEl(o,'mad-mr2', 118,4,  makeZone(o,'mr2',      EL.get(o,'mr2','Meeting Room 2'),'#FFF8E7','#E8C97A','#8A6A00',106,44,false,0));
   html+=makeEl(o,'mad-mr3', 232,4,  makeZone(o,'mr3',      EL.get(o,'mr3','Meeting Room 3'),'#FFF8E7','#E8C97A','#8A6A00',106,44,false,0));
   html+=makeEl(o,'mad-br',  346,4,  makeZone(o,'boardroom',EL.get(o,'boardroom','Board Room'),'#FFF8E7','#E8C97A','#8A6A00',160,44,false,0));
-  
-  ['H1','H2','H3','H4'].forEach(function(id,i){html+=makeEl(o,'mad-'+id,4+(i*52),78,DM(id))});
-  ['H5','H6','H7','H8'].forEach(function(id,i){html+=makeEl(o,'mad-'+id,4+(i*52),128,DM(id))});
-  ['H9','H10','H11','H12'].forEach(function(id,i){html+=makeEl(o,'mad-'+id,4+(i*52),178,DM(id))});
-  
-  ['R1','R2','R3','R4','R5','R6'].forEach(function(id,i){html+=makeEl(o,'mad-'+id,4+(i*52),258,DM(id))});
-  ['R7','R8','R9','R10','R11','R12'].forEach(function(id,i){html+=makeEl(o,'mad-'+id,4+(i*52),308,DM(id))});
-  ['R13','R14','R15','R16','R17','R18'].forEach(function(id,i){html+=makeEl(o,'mad-'+id,4+(i*52),358,DM(id))});
-  
+
+  ['H1','H2','H3','H4'].forEach(function(id,i){html+=makeEl(o,'mad-'+id,4+(i*52),78,DZ(id))});
+  ['H5','H6','H7','H8'].forEach(function(id,i){html+=makeEl(o,'mad-'+id,4+(i*52),128,DZ(id))});
+  ['H9','H10','H11','H12'].forEach(function(id,i){html+=makeEl(o,'mad-'+id,4+(i*52),178,DZ(id))});
+
+  ['R1','R2','R3','R4','R5','R6'].forEach(function(id,i){html+=makeEl(o,'mad-'+id,4+(i*52),258,DZ(id))});
+  ['R7','R8','R9','R10','R11','R12'].forEach(function(id,i){html+=makeEl(o,'mad-'+id,4+(i*52),308,DZ(id))});
+  ['R13','R14','R15','R16','R17','R18'].forEach(function(id,i){html+=makeEl(o,'mad-'+id,4+(i*52),358,DZ(id))});
+
   (cfg.phonebooths||[]).forEach(function(id,i){html+=makeEl(o,'mad-'+id,4+(i*52),438,DPB(id))});
   html+=makeEl(o,'mad-allhands',4,490,makeZone(o,'allhands',EL.get(o,'allhands','All Hands'),'#EAF3DE','#97C459','#3B6D11',350,32,true,0));
-  // Zone labels
-  html+='<div style="position:absolute;left:56px;top:408px;width:104px;text-align:center;font-size:9px;font-weight:700;color:#9B59B6;letter-spacing:1px;text-transform:uppercase;pointer-events:none">HR</div>';
-  html+='<div style="position:absolute;left:108px;top:228px;width:50px;text-align:center;font-size:9px;font-weight:700;color:#E67E22;letter-spacing:1px;text-transform:uppercase;pointer-events:none">Design</div>';
-  html+='<div style="position:absolute;left:212px;top:408px;width:50px;text-align:center;font-size:9px;font-weight:700;color:#E67E22;letter-spacing:1px;text-transform:uppercase;pointer-events:none">Design</div>';
-  html+='<div style="position:absolute;left:316px;top:316px;font-size:9px;font-weight:700;color:#27AE60;letter-spacing:1px;text-transform:uppercase;pointer-events:none">Training</div>';
+  // Zone legend
+  html+='<div style="position:absolute;right:8px;top:8px;display:flex;flex-direction:column;gap:4px;pointer-events:none">'+
+    '<div style="display:flex;align-items:center;gap:5px;font-size:10px;font-weight:600;color:#6C3483"><div style="width:12px;height:12px;border-radius:3px;background:#F3E8FF;border:1.5px solid #9B59B6"></div>HR</div>'+
+    '<div style="display:flex;align-items:center;gap:5px;font-size:10px;font-weight:600;color:#A04000"><div style="width:12px;height:12px;border-radius:3px;background:#FEF3E2;border:1.5px solid #E67E22"></div>Design</div>'+
+    '<div style="display:flex;align-items:center;gap:5px;font-size:10px;font-weight:600;color:#1E8449"><div style="width:12px;height:12px;border-radius:3px;background:#E8F8F5;border:1.5px solid #27AE60"></div>Training</div>'+
+  '</div>';
   html+='</div>';
   return html;
 }
