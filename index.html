@@ -1244,6 +1244,11 @@ function renderMadrid(cfg,D){
   
   (cfg.phonebooths||[]).forEach(function(id,i){html+=makeEl(o,'mad-'+id,4+(i*52),438,DPB(id))});
   html+=makeEl(o,'mad-allhands',4,490,makeZone(o,'allhands',EL.get(o,'allhands','All Hands'),'#EAF3DE','#97C459','#3B6D11',350,32,true,0));
+  // Zone labels
+  html+='<div style="position:absolute;left:56px;top:408px;width:104px;text-align:center;font-size:9px;font-weight:700;color:#9B59B6;letter-spacing:1px;text-transform:uppercase;pointer-events:none">HR</div>';
+  html+='<div style="position:absolute;left:108px;top:228px;width:50px;text-align:center;font-size:9px;font-weight:700;color:#E67E22;letter-spacing:1px;text-transform:uppercase;pointer-events:none">Design</div>';
+  html+='<div style="position:absolute;left:212px;top:408px;width:50px;text-align:center;font-size:9px;font-weight:700;color:#E67E22;letter-spacing:1px;text-transform:uppercase;pointer-events:none">Design</div>';
+  html+='<div style="position:absolute;left:316px;top:316px;font-size:9px;font-weight:700;color:#27AE60;letter-spacing:1px;text-transform:uppercase;pointer-events:none">Training</div>';
   html+='</div>';
   return html;
 }
