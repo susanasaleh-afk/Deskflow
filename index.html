@@ -1229,7 +1229,7 @@ function renderMadrid(cfg,D){
     return el;
   };
   var MAD_ZONES={H12:'hr',R14:'hr',R15:'hr',H10:'design',H11:'design',R17:'design',R7:'training',R8:'training',R9:'training',R10:'training',R11:'training',R12:'training'};
-  var MAD_ZONE_COLORS={hr:{bg:'#F3E8FF',border:'#9B59B6',text:'#6C3483'},design:{bg:'#E8F8F5',border:'#1ABC9C',text:'#0E6655'},training:{bg:'#F2F3F4',border:'#95A5A6',text:'#566573'}};
+  var MAD_ZONE_COLORS={hr:{bg:'#F0E8FC',border:'#7136C4',text:'#7136C4'},design:{bg:'#E0FAF6',border:'#57E5CA',text:'#0E7A6E'},training:{bg:'#D5D8DC',border:'#7F8C8D',text:'#4D5656'}};
   var DZ=function(id){
     var zone=MAD_ZONES[id];
     if(!zone||S.editMode)return DM(id);
@@ -1256,9 +1256,9 @@ function renderMadrid(cfg,D){
   html+=makeEl(o,'mad-allhands',4,490,makeZone(o,'allhands',EL.get(o,'allhands','All Hands'),'#EAF3DE','#97C459','#3B6D11',350,32,true,0));
   // Zone legend
   html+='<div style="position:absolute;right:8px;top:8px;display:flex;flex-direction:column;gap:4px;pointer-events:none">'+
-    '<div style="display:flex;align-items:center;gap:5px;font-size:10px;font-weight:600;color:#6C3483"><div style="width:12px;height:12px;border-radius:3px;background:#F3E8FF;border:1.5px solid #9B59B6"></div>HR</div>'+
-    '<div style="display:flex;align-items:center;gap:5px;font-size:10px;font-weight:600;color:#0E6655"><div style="width:12px;height:12px;border-radius:3px;background:#E8F8F5;border:1.5px solid #1ABC9C"></div>Design</div>'+
-    '<div style="display:flex;align-items:center;gap:5px;font-size:10px;font-weight:600;color:#566573"><div style="width:12px;height:12px;border-radius:3px;background:#F2F3F4;border:1.5px solid #95A5A6"></div>Training</div>'+
+    '<div style="display:flex;align-items:center;gap:5px;font-size:10px;font-weight:600;color:#7136C4"><div style="width:12px;height:12px;border-radius:3px;background:#F0E8FC;border:1.5px solid #7136C4"></div>HR</div>'+
+    '<div style="display:flex;align-items:center;gap:5px;font-size:10px;font-weight:600;color:#0E7A6E"><div style="width:12px;height:12px;border-radius:3px;background:#E0FAF6;border:1.5px solid #57E5CA"></div>Design</div>'+
+    '<div style="display:flex;align-items:center;gap:5px;font-size:10px;font-weight:600;color:#4D5656"><div style="width:12px;height:12px;border-radius:3px;background:#D5D8DC;border:1.5px solid #7F8C8D"></div>Training</div>'+
   '</div>';
   html+='</div>';
   return html;
