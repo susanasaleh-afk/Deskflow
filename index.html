@@ -1079,11 +1079,17 @@ function renderFloorMap(){
         '<div style="display:flex;gap:6px">'+(S.dayOffset===0?'<button class="banner-btn" id="checkin-btn" data-desk="'+myDesk.resourceId+'" data-date="'+date+'">Check in</button>':'')+'<button class="banner-btn" style="background:transparent;color:var(--green-dark);border:1px solid var(--green-border)" data-cancel="'+myDesk.id+'">Cancel</button></div>')+
   '</div>':'')+
   (S.user&&AdminState.get()&&window.innerWidth>768?editBar:'')+'<div class="map-scroll-wrap" style="overflow:scroll;-webkit-overflow-scrolling:touch;width:100%;height:60vh;position:relative;">'+mapHtml+'</div>'+
-  '<div class="legend">'+
+  '<div class="legend">'+(S.office==='Madrid'?
+    '<div class="legend-item"><div class="legend-dot" style="background:#BDF5EA;border-color:#2AB8A0"></div>Available</div>'+
+    '<div class="legend-item"><div class="legend-dot" style="background:#BEBEBE;border-color:#999999"></div>Booked</div>'+
+    '<div class="legend-item"><div class="legend-dot" style="background:var(--blue-bg);border-color:var(--blue-border)"></div>Mine</div>'+
+    '<div class="legend-item"><div class="legend-dot" style="background:#FFD6E7;border-color:#F48FB1"></div>HR</div>'+
+    '<div class="legend-item"><div class="legend-dot" style="background:#FDFCD3;border-color:#D4C800"></div>Design</div>'+
+    '<div class="legend-item"><div class="legend-dot" style="background:#FDDCC3;border-color:#E09050"></div>Training</div>':
     '<div class="legend-item"><div class="legend-dot" style="background:var(--green-bg);border-color:var(--green-border)"></div>Available</div>'+
     '<div class="legend-item"><div class="legend-dot" style="background:var(--red-bg);border-color:var(--red-border)"></div>Booked</div>'+
     '<div class="legend-item"><div class="legend-dot" style="background:var(--blue-bg);border-color:var(--blue-border)"></div>Mine</div>'+
-    '<div class="legend-item"><div class="legend-dot" style="background:var(--purple-bg);border-color:var(--purple-border)"></div>Fixed</div>'+
+    '<div class="legend-item"><div class="legend-dot" style="background:var(--purple-bg);border-color:var(--purple-border)"></div>Fixed</div>')+
   '</div>';
 }
 
@@ -1255,13 +1261,6 @@ function renderMadrid(cfg,D){
 
   (cfg.phonebooths||[]).forEach(function(id,i){html+=makeEl(o,'mad-'+id,4+(i*52),438,DPB(id))});
   html+=makeEl(o,'mad-allhands',4,490,makeZone(o,'allhands',EL.get(o,'allhands','All Hands'),'#EAF3DE','#97C459','#3B6D11',350,32,true,0));
-  // Zone legend
-  html+='<div style="position:absolute;left:4px;bottom:36px;display:flex;flex-direction:row;gap:10px;pointer-events:none;background:rgba(255,255,255,0.85);padding:4px 8px;border-radius:6px;border:1px solid #e0e0e0">'+
-    '<div style="display:flex;align-items:center;gap:4px;font-size:10px;font-weight:600;color:#880E4F"><div style="width:12px;height:12px;border-radius:3px;background:#FFD6E7;border:1.5px solid #F48FB1"></div>HR</div>'+
-    '<div style="display:flex;align-items:center;gap:4px;font-size:10px;font-weight:600;color:#5A5000"><div style="width:12px;height:12px;border-radius:3px;background:#FDFCD3;border:1.5px solid #D4C800"></div>Design</div>'+
-    '<div style="display:flex;align-items:center;gap:4px;font-size:10px;font-weight:600;color:#7A3000"><div style="width:12px;height:12px;border-radius:3px;background:#FDDCC3;border:1.5px solid #E09050"></div>Training</div>'+
-    '<div style="display:flex;align-items:center;gap:4px;font-size:10px;font-weight:600;color:#555"><div style="width:12px;height:12px;border-radius:3px;background:#BEBEBE;border:1.5px solid #999"></div>Booked</div>'+
-  '</div>';
   html+='</div>';
   return html;
 }
