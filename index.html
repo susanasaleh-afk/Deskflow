@@ -1032,11 +1032,12 @@ function renderFloorMap(){
     const lbl=freed?'\ud83d\udd13':rec?'\ud83d\udd01'+(fn||''):(fn||'');
     const title=freed?id+' (released)':fn?'Fixed - '+fn:id;
     const _bbyFull=cls==='desk-booked'?getB(id)?.userName:'';
-    const bby=_bbyFull?_bbyFull.split(' ').map(function(w){return w[0]}).join('').toUpperCase():'';
+    const bby=_bbyFull?_bbyFull.split(' ')[0]:'';
+    const myName=S.user.name?S.user.name.split(' ')[0]:'';
     const ci=CI.get(S.office,id,date);
     const ciTag=ci?' \u2713':'';
-    return '<div class="desk '+cls+'" data-desk="'+id+'" title="'+(cls==='desk-mine'?S.user.name:bby?'Booked by '+bby:title)+'">'+
-      '<span>'+deskLabel(id)+ciTag+'</span><span class="desk-name">'+(cls==='desk-booked'?bby:cls==='desk-mine'?S.user.initials:lbl)+'</span>'+
+    return '<div class="desk '+cls+'" data-desk="'+id+'" title="'+(cls==='desk-mine'?S.user.name:bby?'Booked by '+_bbyFull:title)+'">'+
+      '<span>'+deskLabel(id)+ciTag+'</span><span class="desk-name">'+(cls==='desk-booked'?bby:cls==='desk-mine'?myName:lbl)+'</span>'+
     '</div>';
   };
   const allDesks=cfg.allDesks||[];
