@@ -90,8 +90,8 @@ body{background:var(--bg);color:var(--text);min-height:100vh}
 /* Desk */
 .desk{border-radius:var(--r);cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:9px;font-weight:700;transition:transform .1s,box-shadow .1s;border:1.5px solid transparent;width:44px;height:40px;flex-shrink:0;gap:1px}
 .desk:hover:not(.desk-fixed){transform:scale(1.1);box-shadow:0 2px 8px rgba(0,0,0,.1)}
-.desk-available{background:var(--green-bg);border-color:var(--green-border);color:var(--green-dark)}
-.desk-booked{background:var(--red-bg);border-color:var(--red-border);color:var(--red-dark)}
+.desk-available{background:#BDF5EA;border-color:#2AB8A0;color:#0A4A42}
+.desk-booked{background:#BEBEBE;border-color:#999999;color:#333333}
 .desk-mine{background:var(--blue-bg);border-color:var(--blue-border);color:var(--blue)}
 .desk-fixed{background:var(--purple-bg);border-color:var(--purple-border);color:var(--purple);cursor:default}
 .desk-name{font-size:7px;opacity:.8;font-weight:400;max-width:40px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-align:center}
@@ -1086,8 +1086,8 @@ function renderFloorMap(){
     '<div class="legend-item"><div class="legend-dot" style="background:#FFD6E7;border-color:#F48FB1"></div>HR</div>'+
     '<div class="legend-item"><div class="legend-dot" style="background:#FDFCD3;border-color:#D4C800"></div>Design</div>'+
     '<div class="legend-item"><div class="legend-dot" style="background:#FDDCC3;border-color:#E09050"></div>Training</div>':
-    '<div class="legend-item"><div class="legend-dot" style="background:var(--green-bg);border-color:var(--green-border)"></div>Available</div>'+
-    '<div class="legend-item"><div class="legend-dot" style="background:var(--red-bg);border-color:var(--red-border)"></div>Booked</div>'+
+    '<div class="legend-item"><div class="legend-dot" style="background:#BDF5EA;border-color:#2AB8A0"></div>Available</div>'+
+    '<div class="legend-item"><div class="legend-dot" style="background:#BEBEBE;border-color:#999999"></div>Booked</div>'+
     '<div class="legend-item"><div class="legend-dot" style="background:var(--blue-bg);border-color:var(--blue-border)"></div>Mine</div>'+
     '<div class="legend-item"><div class="legend-dot" style="background:var(--purple-bg);border-color:var(--purple-border)"></div>Fixed</div>')+
   '</div>';
