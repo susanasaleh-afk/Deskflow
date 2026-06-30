@@ -1229,7 +1229,7 @@ function renderMadrid(cfg,D){
     return el;
   };
   var MAD_ZONES={H12:'hr',R14:'hr',R15:'hr',H10:'design',H11:'design',R17:'design',R7:'training',R8:'training',R9:'training',R10:'training',R11:'training',R12:'training'};
-  var MAD_ZONE_COLORS={hr:{bg:'#F3E8FF',border:'#9B59B6',text:'#6C3483'},design:{bg:'#FEF3E2',border:'#E67E22',text:'#A04000'},training:{bg:'#E8F8F5',border:'#27AE60',text:'#1E8449'}};
+  var MAD_ZONE_COLORS={hr:{bg:'#F3E8FF',border:'#9B59B6',text:'#6C3483'},design:{bg:'#FEF3E2',border:'#E67E22',text:'#A04000'},training:{bg:'#FDEDEC',border:'#E74C3C',text:'#922B21'}};
   var DZ=function(id){
     var zone=MAD_ZONES[id];
     if(!zone||S.editMode)return DM(id);
@@ -1258,7 +1258,7 @@ function renderMadrid(cfg,D){
   html+='<div style="position:absolute;right:8px;top:8px;display:flex;flex-direction:column;gap:4px;pointer-events:none">'+
     '<div style="display:flex;align-items:center;gap:5px;font-size:10px;font-weight:600;color:#6C3483"><div style="width:12px;height:12px;border-radius:3px;background:#F3E8FF;border:1.5px solid #9B59B6"></div>HR</div>'+
     '<div style="display:flex;align-items:center;gap:5px;font-size:10px;font-weight:600;color:#A04000"><div style="width:12px;height:12px;border-radius:3px;background:#FEF3E2;border:1.5px solid #E67E22"></div>Design</div>'+
-    '<div style="display:flex;align-items:center;gap:5px;font-size:10px;font-weight:600;color:#1E8449"><div style="width:12px;height:12px;border-radius:3px;background:#E8F8F5;border:1.5px solid #27AE60"></div>Training</div>'+
+    '<div style="display:flex;align-items:center;gap:5px;font-size:10px;font-weight:600;color:#922B21"><div style="width:12px;height:12px;border-radius:3px;background:#FDEDEC;border:1.5px solid #E74C3C"></div>Training</div>'+
   '</div>';
   html+='</div>';
   return html;
