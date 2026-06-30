@@ -473,10 +473,12 @@ const RF={
   _d:[],
   async load(){const data=await api('recurring');this._d=data.map(x=>({...x,deskId:x.desk_id,days:typeof x.days==='string'?JSON.parse(x.days):x.days}));},
   all(){return this._d},
-  isFixedOn(office,deskId,date){const dow=new Date(date+'T12:00:00').getDay();return this._d.find(x=>x.office===office&&x.deskId===deskId&&Array.isArray(x.days)&&x.days.includes(dow));},
+  isFixedOn(office,deskId,date){const dow=new Date(date+'T12:00:00').getDay();return this._d.find(x=>x.office===office&&x.deskId===deskId&&Array.isArray(x.days)&&x.days.includes(dow)&&!x.days.includes(-1));},
   person(office,deskId,date){return this.isFixedOn(office,deskId,date)?.person||null},
+  isBlocked(office,deskId){return this._d.some(x=>x.office===office&&x.deskId===deskId&&Array.isArray(x.days)&&x.days.includes(-1));},
   async add(r){await api('recurring','POST',{office:r.office,desk_id:r.deskId,person:r.person,days:JSON.stringify(r.days)});await this.load();},
   async remove(office,deskId){await api('recurring','DELETE',null,{office,desk_id:deskId});await this.load();},
+  async block(office,deskId){await api('recurring','POST',{office,desk_id:deskId,person:'__blocked__',days:JSON.stringify([-1])});await this.load();},
 };
 
 // ═══ CHECK-INS ═══
@@ -1013,11 +1015,12 @@ function renderFloorMap(){
   const cfg=OFFICES[S.office],date=ds(S.dayOffset);
   const bookings=BK.forOD(S.office,date),deskB=bookings.filter(b=>b.type==='desk');
   const getB=id=>deskB.find(b=>b.resourceId===id);
-  const isFF=id=>!!cfg.fixedDesks[id]&&FF.isFree(S.office,id,date);
+  const isHardFixed=id=>!!cfg.fixedDesks[id]&&!RF.isBlocked(S.office,id);
+  const isFF=id=>isHardFixed(id)&&FF.isFree(S.office,id,date);
   const recurPerson=id=>RF.person(S.office,id,date);
-  const isRecur=id=>!cfg.fixedDesks[id]&&!!recurPerson(id)&&!FF.isFree(S.office,id,date);
+  const isRecur=id=>!isHardFixed(id)&&!!recurPerson(id)&&!FF.isFree(S.office,id,date);
   const dCls=id=>{
-    const fix=!!cfg.fixedDesks[id];
+    const fix=isHardFixed(id);
     if(fix&&!isFF(id))return'desk-fixed';
     if(!fix&&isRecur(id))return'desk-fixed';
     const b=getB(id);if(!b)return'desk-available';
@@ -1025,7 +1028,7 @@ function renderFloorMap(){
     return'desk-booked';
   };
   const D=id=>{
-    const cls=dCls(id),fn=cfg.fixedDesks[id]||recurPerson(id),freed=isFF(id),rec=isRecur(id);
+    const cls=dCls(id),fn=(isHardFixed(id)?cfg.fixedDesks[id]:null)||recurPerson(id),freed=isFF(id),rec=isRecur(id);
     const lbl=freed?'\ud83d\udd13':rec?'\ud83d\udd01'+(fn||''):(fn||'');
     const title=freed?id+' (released)':fn?'Fixed - '+fn:id;
     const _bbyFull=cls==='desk-booked'?getB(id)?.userName:'';
@@ -1461,7 +1464,7 @@ function renderMyBookings(){
 
 // ─── ADMIN ───
 function renderAdmin(){
-  var allFixed=Object.entries(OFFICES).flatMap(function(e){return Object.entries(e[1].fixedDesks||{}).map(function(fd){return{off:e[0],deskId:fd[0],person:fd[1]}})});
+  var allFixed=Object.entries(OFFICES).flatMap(function(e){return Object.entries(e[1].fixedDesks||{}).map(function(fd){return{off:e[0],deskId:fd[0],person:fd[1],hardcoded:true}})}).filter(function(x){return!RF.isBlocked(x.off,x.deskId)});
   var next14=Array.from({length:14},function(_,i){return{label:i===0?'Today':i===1?'Tomorrow':dispDate(i),date:ds(i)}});
   var freed=FF.all(),rf=RF.all();
 
@@ -1533,6 +1536,35 @@ function renderAdmin(){
       rf.map(function(r){var dn=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];var days=Array.isArray(r.days)?r.days:(typeof r.days==='string'?JSON.parse(r.days):[]);return'<div style="display:flex;align-items:center;gap:8px;padding:6px 10px;background:#f9fafb;border:1px solid var(--border);border-radius:var(--r);margin-bottom:4px"><span style="flex:1;font-size:12px"><strong>'+r.person+'</strong> &middot; '+(r.desk_id||r.deskId)+' &middot; '+r.office+' &middot; '+days.map(function(d){return dn[d]}).join(', ')+'</span><button class="cancel-btn rfRm" data-office="'+r.office+'" data-desk="'+(r.desk_id||r.deskId)+'">Remove</button></div>'}).join('')+
     '</div>':'<div style="border-top:1px solid var(--border);padding-top:10px;font-size:12px;color:var(--text3)">No recurring fixed desks set.</div>')+
   '</div>'+
+  // Manage fixed desks (superadmin only)
+  (SuperAdminState.get()?function(){
+    var hardFixed=Object.entries(OFFICES).flatMap(function(e){return Object.entries(e[1].fixedDesks||{}).map(function(fd){return{off:e[0],deskId:fd[0],person:fd[1],blocked:RF.isBlocked(e[0],fd[0])}})});
+    var permRF=rf.filter(function(r){return!r.days.includes(-1)});
+    return '<div class="card"><div class="card-header"><div class="card-title">📌 Manage fixed desks</div></div>'+
+      '<p style="font-size:13px;color:var(--text2);margin-bottom:14px">Add or remove permanent fixed desk assignments. Visible to all users.</p>'+
+      '<div style="display:grid;grid-template-columns:1fr 1fr 1fr auto;gap:8px;align-items:end;margin-bottom:14px">'+
+        '<div><div style="font-size:10px;color:var(--text3);text-transform:uppercase;margin-bottom:3px">Office</div>'+
+          '<select id="fdOff" style="width:100%;padding:8px;border:1px solid var(--border);border-radius:var(--r);font-size:12px;font-family:inherit;background:var(--bg)">'+Object.keys(OFFICES).map(function(o){return'<option>'+o+'</option>'}).join('')+'</select></div>'+
+        '<div><div style="font-size:10px;color:var(--text3);text-transform:uppercase;margin-bottom:3px">Desk ID</div>'+
+          '<input id="fdDesk" type="text" placeholder="e.g. L4" style="width:100%;padding:8px;border:1px solid var(--border);border-radius:var(--r);font-size:12px;font-family:inherit;background:var(--bg)"/></div>'+
+        '<div><div style="font-size:10px;color:var(--text3);text-transform:uppercase;margin-bottom:3px">Person name</div>'+
+          '<input id="fdPerson" type="text" placeholder="Name" style="width:100%;padding:8px;border:1px solid var(--border);border-radius:var(--r);font-size:12px;font-family:inherit;background:var(--bg)"/></div>'+
+        '<button id="fdAdd" class="btn-primary" style="padding:8px 12px">Add</button>'+
+      '</div>'+
+      '<div style="border-top:1px solid var(--border);padding-top:10px">'+
+        '<div style="font-size:12px;font-weight:600;margin-bottom:8px">Current fixed desks</div>'+
+        hardFixed.map(function(x){
+          return'<div style="display:flex;align-items:center;gap:8px;padding:6px 10px;background:'+(x.blocked?'var(--red-bg)':'#f9fafb')+';border:1px solid '+(x.blocked?'var(--red-border)':'var(--border)')+';border-radius:var(--r);margin-bottom:4px">'+
+            '<span style="flex:1;font-size:12px'+(x.blocked?';color:var(--red-dark);text-decoration:line-through':'')+'"><strong>'+x.person+'</strong> &middot; '+deskLabel(x.deskId)+' &middot; '+x.off+(x.blocked?' &mdash; <em>removed</em>':'')+'</span>'+
+            (x.blocked
+              ? '<button class="btn-primary fdUn" data-off="'+x.off+'" data-desk="'+x.deskId+'" style="padding:4px 10px;font-size:11px">Restore</button>'
+              : '<button class="cancel-btn fdRm" data-off="'+x.off+'" data-desk="'+x.deskId+'" style="padding:4px 10px;font-size:11px">Remove</button>')+
+          '</div>';
+        }).join('')+
+        (permRF.length>0?'<div style="font-size:11px;font-weight:600;margin:10px 0 6px;color:var(--text3);text-transform:uppercase">Added via this panel</div>'+
+          permRF.map(function(r){var dn=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];var days=Array.isArray(r.days)?r.days:[];return'<div style="display:flex;align-items:center;gap:8px;padding:6px 10px;background:var(--green-bg);border:1px solid var(--green-border);border-radius:var(--r);margin-bottom:4px"><span style="flex:1;font-size:12px;color:var(--green-dark)"><strong>'+r.person+'</strong> &middot; '+(r.desk_id||r.deskId)+' &middot; '+r.office+' &middot; '+days.map(function(d){return dn[d]}).join(',')+'</span><button class="cancel-btn rfRm" data-office="'+r.office+'" data-desk="'+(r.desk_id||r.deskId)+'" style="padding:4px 10px;font-size:11px">Remove</button></div>'}).join(''):'')+'</div>'+
+    '</div>';
+  }():'')+
   // No-show report
   (function(){
     var date=ds(S.dayOffset),allB=BK.forOD(S.office,date).filter(function(b){return b.type==='desk'});
@@ -2003,6 +2035,20 @@ function bindAll(){
   });
   document.querySelectorAll('.rfRm').forEach(function(btn){btn.addEventListener('click',function(){
     RF.remove(btn.dataset.office,btn.dataset.desk).then(()=>{toast('Removed');render();});
+  })});
+  // Fixed desk management
+  document.getElementById('fdAdd')?.addEventListener('click',function(){
+    var office=document.getElementById('fdOff')?.value;
+    var deskId=document.getElementById('fdDesk')?.value?.trim().toUpperCase();
+    var person=document.getElementById('fdPerson')?.value?.trim();
+    if(!office||!deskId||!person){toast('Fill all fields','error');return;}
+    RF.add({office,deskId,person,days:[1,2,3,4,5]}).then(function(){toast('Fixed desk added ✓');render();});
+  });
+  document.querySelectorAll('.fdRm').forEach(function(btn){btn.addEventListener('click',function(){
+    RF.block(btn.dataset.off,btn.dataset.desk).then(function(){toast('Fixed desk removed');render();});
+  })});
+  document.querySelectorAll('.fdUn').forEach(function(btn){btn.addEventListener('click',function(){
+    RF.remove(btn.dataset.off,btn.dataset.desk).then(function(){toast('Fixed desk restored');render();});
   })});
   // Map canvas
   if(S.view==='map')bindCanvas(S.office);
