@@ -1235,8 +1235,8 @@ function renderMadrid(cfg,D){
     if(S.editMode)return el;
     var zone=MAD_ZONES[id];
     var zc=zone?MAD_ZONE_COLORS[zone]:{bg:'#BDF5EA',border:'#2AB8A0',text:'#0A4A42'};
-    el=el.replace('class="desk desk-available"','class="desk desk-available" style="background:'+zc.bg+';border-color:'+zc.border+';color:'+zc.text+'"');
-    el=el.replace('class="desk desk-booked"','class="desk desk-booked" style="background:#C5BFBF;border-color:#A09A9A;color:#3A3535"');
+    el=el.replace('class="desk desk-available"','class="desk desk-available" style="background:'+zc.bg+'!important;border-color:'+zc.border+'!important;color:'+zc.text+'!important"');
+    el=el.replace('class="desk desk-booked"','class="desk desk-booked" style="background:#C5BFBF!important;border-color:#A09A9A!important;color:#3A3535!important"');
     return el;
   };
   var html='<div id="map-canvas-'+o+'" class="map-canvas'+(S.editMode?' edit-on':'')+'" style="min-height:560px;min-width:620px">';
