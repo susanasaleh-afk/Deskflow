@@ -8,7 +8,7 @@ const supabase = createClient(
 
 module.exports = async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', 'https://gig-deskflow.vercel.app');
-  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, DELETE, OPTIONS');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PATCH, DELETE, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-User-Id, X-User-Email, X-User-Name, X-Tenant-Id');
   if (req.method === 'OPTIONS') return res.status(200).end();
 
@@ -59,6 +59,21 @@ module.exports = async function handler(req, res) {
       });
       if (error) throw error;
       return res.status(201).json(data);
+    }
+
+    if (req.method === 'PATCH') {
+      const callerIsAdmin = await isAdmin(supabase, caller.id);
+      if (!callerIsAdmin) return res.status(403).json({ error: 'Forbidden: admin required' });
+      const { id, resource_id } = req.body;
+      if (!id || !resource_id) return res.status(400).json({ error: 'Missing id or resource_id' });
+      const { data: booking } = await supabase.from('bookings').select('*').eq('id', id).single();
+      if (!booking) return res.status(404).json({ error: 'Not found' });
+      const { data: conflict } = await supabase.from('bookings').select('id')
+        .eq('office', booking.office).eq('date', booking.date).eq('resource_id', resource_id).eq('type', booking.type).neq('id', id);
+      if (conflict && conflict.length > 0) return res.status(409).json({ error: 'Desk already booked' });
+      const { data, error } = await supabase.from('bookings').update({ resource_id }).eq('id', id);
+      if (error) throw error;
+      return res.status(200).json(data);
     }
 
     if (req.method === 'DELETE') {
