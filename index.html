@@ -1296,8 +1296,7 @@ function renderBarcelona(cfg,D){
   html+=makeEl(o,'bcn-entrance',256, 4,   makeZone(o,'bcn-entrance',  EL.get(o,'bcn-entrance','Entrance'),        '#F3E5F5','#CE93D8','#6A1B9A',100,50,false,0));
   html+=makeEl(o,'bcn-rest',    370, 4,   makeZone(o,'bcn-rest', EL.get(o,'bcn-rest','☕ Rest Area'), '#FFF8E7','#E8C97A','#8A6A00',160,220,false,0));
 
-  // Pere fixed desk (large)
-  html+=makeEl(o,'bcn-P1', 4, 80, '<div style="width:100px;height:50px;background:var(--green-bg);border:2px solid var(--green);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:var(--green);flex-direction:column;gap:2px"><span>Pere</span><span style="font-size:9px;font-weight:400">P1</span></div>');
+  html+=makeEl(o,'bcn-P1', 4, 80, DR('P1'));
 
   // 14 regular desks
   var desks=['B1','B2','B3','B4','B5','B6','B7','B8','B9','B10','B11','B12','B13','B14'];
