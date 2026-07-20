@@ -1090,7 +1090,6 @@ function renderFloorMap(){
     '<div class="legend-item"><div class="legend-dot" style="background:#BEBEBE;border-color:#999999"></div>Booked</div>'+
     '<div class="legend-item"><div class="legend-dot" style="background:var(--blue-bg);border-color:var(--blue-border)"></div>Mine</div>'+
     '<div class="legend-item"><div class="legend-dot" style="background:#FFD6E7;border-color:#F48FB1"></div>HR</div>'+
-    '<div class="legend-item"><div class="legend-dot" style="background:#FDFCD3;border-color:#D4C800"></div>Design</div>'+
     '<div class="legend-item"><div class="legend-dot" style="background:#FDDCC3;border-color:#E09050"></div>Training</div>':
     '<div class="legend-item"><div class="legend-dot" style="background:#BDF5EA;border-color:#2AB8A0"></div>Available</div>'+
     '<div class="legend-item"><div class="legend-dot" style="background:#BEBEBE;border-color:#999999"></div>Booked</div>'+
@@ -1240,8 +1239,8 @@ function renderMadrid(cfg,D){
     if(custom){el=el.replace('>'+id+'<','>'+displayName+'<');el=el.replace('>'+id+' ✓<','>'+displayName+' ✓<');}
     return el;
   };
-  var MAD_ZONES={H12:'hr',R14:'hr',R15:'hr',H10:'design',H11:'design',R17:'design',R7:'training',R8:'training',R9:'training',R10:'training',R11:'training',R12:'training'};
-  var MAD_ZONE_COLORS={hr:{bg:'#FFD6E7',border:'#F48FB1',text:'#880E4F'},design:{bg:'#FDFCD3',border:'#D4C800',text:'#5A5000'},training:{bg:'#FDDCC3',border:'#E09050',text:'#7A3000'}};
+  var MAD_ZONES={H12:'hr',R14:'hr',R15:'hr',R7:'training',R8:'training',R9:'training',R10:'training',R11:'training',R12:'training'};
+  var MAD_ZONE_COLORS={hr:{bg:'#FFD6E7',border:'#F48FB1',text:'#880E4F'},training:{bg:'#FDDCC3',border:'#E09050',text:'#7A3000'}};
   var DZ=function(id){
     var el=DM(id);
     if(S.editMode)return el;
