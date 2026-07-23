@@ -362,7 +362,6 @@ const OFFICES={
       {id:'darkblue', color:'#1565C0',label:'Dark Blue zone', desks:['M37','M38','M39','M40']},
       {id:'yellow',   color:'#F1C40F',label:'Yellow zone',    desks:['M41','M42','M43','M44','M45','M46','M47','M48']},
       {id:'entrance', color:'#AAB7B8', label:'Entrance',           desks:['M49']},
-      {id:'new',      color:null,      label:'New desks',           desks:['M50','M51','M52','M53','M54','M55','M56']},
     ],
     l4Groups:[
       {id:'blue',  color:'#1A5276',label:'Blue zone',  desks:['L1','L2','L3','L4','L5','L6','L48','L49','L19','L20','L21','L22']},
@@ -2102,7 +2101,7 @@ function bindAll(){
 
 // ═══ START ═══
 // Clear version cache on load
-if(DB.get('appver','')!=='v39'){
+if(DB.get('appver','')!=='v40'){
   // Marbella
   DB.set('mp_Marbella',{malaga:{x:470,y:0},linnea:{x:357,y:1},kitchen:{x:278,y:1},allhands:{x:0,y:177},lcluster:{x:435,y:32},ceo:{x:561,y:215},rcluster:{x:272,y:35},boardroom:{x:63,y:192},enter:{x:213,y:14}});
   DB.set('rot_Marbella_boardroom',90);DB.set('rot_Marbella_allhands',90);DB.set('rot_Marbella_enter',90);
@@ -2229,7 +2228,12 @@ if(DB.get('appver','')!=='v39'){
     DB.set('el_Malta_room-L5-2','Comino');
     DB.set('el_Malta_room-L5-3','Filfla');
     DB.set('el_Malta_room-L5-4','Citadella');
-  DB.set('appver','v39');
+  // Reset Malta L5 M5-M8 positions to defaults
+  var mpMalta=DB.get('mp_Malta',{});
+  delete mpMalta['malta-d-M5'];delete mpMalta['malta-d-M6'];
+  delete mpMalta['malta-d-M7'];delete mpMalta['malta-d-M8'];
+  DB.set('mp_Malta',mpMalta);
+  DB.set('appver','v40');
 }
 
 // ═══ OFFICE PICKER ═══
