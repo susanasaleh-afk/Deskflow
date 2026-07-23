@@ -587,7 +587,7 @@ function toast(msg,type='success'){
 // ═══ HIDDEN OFFICES ═══
 const HiddenOffices={
   _key:'hidden_offices',
-  get(){return DB.get(this._key,['Malta'])},
+  get(){return DB.get(this._key,[])},
   set(list){DB.set(this._key,list)},
   isHidden(name){return this.get().includes(name)},
   toggle(name){const h=this.get();const i=h.indexOf(name);if(i>-1)h.splice(i,1);else h.push(name);this.set(h);},
