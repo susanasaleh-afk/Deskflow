@@ -2122,7 +2122,7 @@ function bindAll(){
 
 // ═══ START ═══
 // Clear version cache on load
-if(DB.get('appver','')!=='v53'){
+if(DB.get('appver','')!=='v54'){
   // Marbella
   DB.set('mp_Marbella',{malaga:{x:470,y:0},linnea:{x:357,y:1},kitchen:{x:278,y:1},allhands:{x:0,y:177},lcluster:{x:435,y:32},ceo:{x:561,y:215},rcluster:{x:272,y:35},boardroom:{x:63,y:192},enter:{x:213,y:14}});
   DB.set('rot_Marbella_boardroom',90);DB.set('rot_Marbella_allhands',90);DB.set('rot_Marbella_enter',90);
@@ -2249,41 +2249,41 @@ if(DB.get('appver','')!=='v53'){
     DB.set('el_Malta_room-L5-2','Comino');
     DB.set('el_Malta_room-L5-3','Filfla');
     DB.set('el_Malta_room-L5-4','Citadella');
-  // Malta floor N desks — v53 layout per user floor plan description
+  // Malta floor N desks — v54: mirrored layout (left/right corrected)
   var mpM=DB.get('mp_Malta',{});
   var nd={
-    // WPS (yellow, 1) — CENTRO
-    'malta-d-N1':{x:510,y:290},
-    // Corp IT (orange, 4) — ABAJO DERECHA 2x2
-    'malta-d-N2':{x:920,y:390},'malta-d-N3':{x:970,y:390},'malta-d-N4':{x:920,y:442},'malta-d-N5':{x:970,y:442},
-    // Finance (red, 6) — CENTRO-IZQUIERDA, sobre legal, 3x2
-    'malta-d-N6':{x:270,y:190},'malta-d-N7':{x:320,y:190},'malta-d-N8':{x:370,y:190},
-    'malta-d-N9':{x:270,y:242},'malta-d-N10':{x:320,y:242},'malta-d-N11':{x:370,y:242},
-    // Legal (light blue, 6) — DENTRO IZQUIERDA, bajo finance, 3x2
-    'malta-d-N12':{x:270,y:320},'malta-d-N13':{x:320,y:320},'malta-d-N14':{x:370,y:320},
-    'malta-d-N15':{x:270,y:372},'malta-d-N16':{x:320,y:372},'malta-d-N17':{x:370,y:372},
-    // Tech A (dark blue, 4) — izquierda de Corp IT, 2x2
-    'malta-d-N18':{x:810,y:390},'malta-d-N19':{x:860,y:390},'malta-d-N20':{x:810,y:442},'malta-d-N21':{x:860,y:442},
-    // Tech B (dark blue, 6) — ABAJO IZQUIERDA, 3x2
-    'malta-d-N22':{x:50,y:390},'malta-d-N23':{x:100,y:390},'malta-d-N24':{x:150,y:390},
-    'malta-d-N25':{x:50,y:442},'malta-d-N26':{x:100,y:442},'malta-d-N27':{x:150,y:442},
-    // Tech C (dark blue, 6) — DELANTE de abajo-izquierda (encima), 3x2
-    'malta-d-N28':{x:50,y:290},'malta-d-N29':{x:100,y:290},'malta-d-N30':{x:150,y:290},
-    'malta-d-N31':{x:50,y:342},'malta-d-N32':{x:100,y:342},'malta-d-N33':{x:150,y:342},
-    // Tech D (dark blue, 4) — CENTRO-DERECHA paralelo al gris, 2x2
-    'malta-d-N34':{x:670,y:190},'malta-d-N35':{x:720,y:190},'malta-d-N36':{x:670,y:242},'malta-d-N37':{x:720,y:242},
-    // Tech E (dark blue, 2) — mesa mixta entre Ops top-right y Tech centro-derecha
-    'malta-d-N38':{x:800,y:155},'malta-d-N39':{x:850,y:155},
-    // Hot Desks (grey, 4) — DELANTE DE Finance (a su derecha), 2x2
-    'malta-d-N40':{x:450,y:190},'malta-d-N41':{x:500,y:190},'malta-d-N42':{x:450,y:242},'malta-d-N43':{x:500,y:242},
-    // People Ops (green, 4) — ARRIBA IZQUIERDA, 2x2
-    'malta-d-N44':{x:50,y:50},'malta-d-N45':{x:100,y:50},'malta-d-N46':{x:50,y:102},'malta-d-N47':{x:100,y:102},
-    // Ops A (brown, 4) — ARRIBA DERECHA, 2x2
-    'malta-d-N48':{x:920,y:50},'malta-d-N49':{x:970,y:50},'malta-d-N50':{x:920,y:102},'malta-d-N51':{x:970,y:102},
-    // Ops B (brown, 2) — mesa mixta entre Ops top-right y Tech centro-derecha
-    'malta-d-N52':{x:800,y:207},'malta-d-N53':{x:850,y:207}};
+    // WPS (yellow, 1) — entrada: izquierda del usuario = derecha del canvas, centro vertical
+    'malta-d-N1':{x:1010,y:260},
+    // Corp IT (orange, 4) — ABAJO IZQUIERDA (tu derecha) 2x2
+    'malta-d-N2':{x:30,y:390},'malta-d-N3':{x:80,y:390},'malta-d-N4':{x:30,y:442},'malta-d-N5':{x:80,y:442},
+    // Finance (red, 6) — CENTRO-DERECHA (tu izquierda), sobre Legal, 3x2
+    'malta-d-N6':{x:630,y:190},'malta-d-N7':{x:680,y:190},'malta-d-N8':{x:730,y:190},
+    'malta-d-N9':{x:630,y:242},'malta-d-N10':{x:680,y:242},'malta-d-N11':{x:730,y:242},
+    // Legal (light blue, 6) — DENTRO DERECHA (tu izquierda), bajo Finance, 3x2
+    'malta-d-N12':{x:630,y:320},'malta-d-N13':{x:680,y:320},'malta-d-N14':{x:730,y:320},
+    'malta-d-N15':{x:630,y:372},'malta-d-N16':{x:680,y:372},'malta-d-N17':{x:730,y:372},
+    // Tech A (dark blue, 4) — derecha de Corp IT (tu izquierda del naranja), 2x2
+    'malta-d-N18':{x:140,y:390},'malta-d-N19':{x:190,y:390},'malta-d-N20':{x:140,y:442},'malta-d-N21':{x:190,y:442},
+    // Tech B (dark blue, 6) — ABAJO DERECHA (tu izquierda), 3x2
+    'malta-d-N22':{x:850,y:390},'malta-d-N23':{x:900,y:390},'malta-d-N24':{x:950,y:390},
+    'malta-d-N25':{x:850,y:442},'malta-d-N26':{x:900,y:442},'malta-d-N27':{x:950,y:442},
+    // Tech C (dark blue, 6) — DELANTE de abajo-derecha (encima), 3x2
+    'malta-d-N28':{x:850,y:290},'malta-d-N29':{x:900,y:290},'malta-d-N30':{x:950,y:290},
+    'malta-d-N31':{x:850,y:342},'malta-d-N32':{x:900,y:342},'malta-d-N33':{x:950,y:342},
+    // Tech D (dark blue, 4) — CENTRO-IZQUIERDA paralelo al gris, 2x2
+    'malta-d-N34':{x:280,y:190},'malta-d-N35':{x:330,y:190},'malta-d-N36':{x:280,y:242},'malta-d-N37':{x:330,y:242},
+    // Tech E (dark blue, 2) — mesa mixta (entre Ops arriba-izq y Tech centro-izq)
+    'malta-d-N38':{x:150,y:155},'malta-d-N39':{x:200,y:155},
+    // Hot Desks (grey, 4) — DELANTE DE Finance (a su izquierda), 2x2
+    'malta-d-N40':{x:500,y:190},'malta-d-N41':{x:550,y:190},'malta-d-N42':{x:500,y:242},'malta-d-N43':{x:550,y:242},
+    // People Ops (green, 4) — ARRIBA DERECHA (tu izquierda), 2x2
+    'malta-d-N44':{x:900,y:50},'malta-d-N45':{x:950,y:50},'malta-d-N46':{x:900,y:102},'malta-d-N47':{x:950,y:102},
+    // Ops A (brown, 4) — ARRIBA IZQUIERDA (tu derecha), 2x2
+    'malta-d-N48':{x:30,y:50},'malta-d-N49':{x:80,y:50},'malta-d-N50':{x:30,y:102},'malta-d-N51':{x:80,y:102},
+    // Ops B (brown, 2) — mesa mixta con Tech E (entre Ops arriba-izq y Tech centro-izq)
+    'malta-d-N52':{x:150,y:207},'malta-d-N53':{x:200,y:207}};
   Object.assign(mpM,nd);DB.set('mp_Malta',mpM);
-  DB.set('appver','v53');
+  DB.set('appver','v54');
 }
 
 // ═══ OFFICE PICKER ═══
