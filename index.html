@@ -378,14 +378,14 @@ const OFFICES={
     ],
     maltaRooms:[],
     maltaGroups:[
-      {id:'wps',      color:'#FFC107',label:'WPS Reception',          desks:['N1']},
-      {id:'corpit',   color:'#2196F3',label:'Corp IT',                desks:['N2','N3','N4','N5','N6','N7','N8']},
-      {id:'tech',     color:'#4CAF50',label:'Tech',                   desks:['N9','N10','N11','N12','N13','N14','N15','N16']},
-      {id:'legal',    color:'#E65100',label:'Legal & Compliance',     desks:['N17','N18','N19','N20','N21','N22','N23','N24']},
-      {id:'finance',  color:'#E53935',label:'Finance',                desks:['N25','N26','N27','N28','N29','N30']},
-      {id:'hotdesks', color:'#9E9E9E',label:'Hot Desks',              desks:['N31','N32','N33','N34','N35','N36','N37','N38','N39','N40']},
-      {id:'peopleops',color:'#9C27B0',label:'People Ops',             desks:['N41','N42','N43','N44','N45','N46']},
-      {id:'ops',      color:'#FF9800',label:'Operations / Commercial',desks:['N47','N48','N49','N50','N51','N52','N53']},
+      {id:'wps',      color:'#FFC107',label:'WPS Main Reception',          desks:['N1']},
+      {id:'corpit',   color:'#FF9800',label:'Corp IT',                     desks:['N2','N3','N4','N5']},
+      {id:'tech',     color:'#1565C0',label:'Tech',                        desks:['N6','N7','N8','N9','N10','N11','N12','N13','N14','N15','N16','N17','N18','N19','N20','N21','N22','N23','N24','N25','N26','N27']},
+      {id:'legal',    color:'#85C1E9',label:'Legal & Compliance / Infosec',desks:['N28','N29','N30','N31','N32','N33']},
+      {id:'finance',  color:'#E53935',label:'Finance',                     desks:['N34','N35','N36','N37','N38','N39']},
+      {id:'hotdesks', color:'#9E9E9E',label:'Hot Desks',                   desks:['N40','N41','N42','N43']},
+      {id:'peopleops',color:'#27AE60',label:'People Ops',                  desks:['N44','N45','N46','N47']},
+      {id:'ops',      color:'#E65100',label:'Operations / Commercial',     desks:['N48','N49','N50','N51','N52','N53']},
     ]},
   Madrid:{color:'#7F77DD',flag:'\ud83c\uddea\ud83c\uddf8',layout:'madrid',food:[{"name": "Apeteat", "logo": "https://s3.eu-central-1.amazonaws.com/apeteat.media/web/images/svg/apeteat_logo.svg", "type": "web", "url": "https://www.apeteat.com/acceso"}],desks:30,
     rooms:['Meeting Room 1','Meeting Room 2','Meeting Room 3','Board Room'],
@@ -1205,6 +1205,16 @@ function renderMalta(cfg,D){
     });
     yPos+=32+(Math.ceil(g.desks.length/8)*52)+16;
   });
+  if(floor==='Malta'){
+    html+='<div style="position:absolute;left:60px;top:460px;display:flex;flex-wrap:wrap;gap:10px 20px;max-width:1000px">';
+    groups.forEach(function(g){
+      html+='<div style="display:flex;align-items:center;gap:5px;font-size:10px;color:var(--text)">'+
+        '<div style="width:13px;height:13px;border-radius:3px;background:'+g.color+';flex-shrink:0"></div>'+
+        '<span>'+g.label+'</span>'+
+      '</div>';
+    });
+    html+='</div>';
+  }
   html+='</div>';
   return html;
 }
@@ -2112,7 +2122,7 @@ function bindAll(){
 
 // ═══ START ═══
 // Clear version cache on load
-if(DB.get('appver','')!=='v47'){
+if(DB.get('appver','')!=='v48'){
   // Marbella
   DB.set('mp_Marbella',{malaga:{x:470,y:0},linnea:{x:357,y:1},kitchen:{x:278,y:1},allhands:{x:0,y:177},lcluster:{x:435,y:32},ceo:{x:561,y:215},rcluster:{x:272,y:35},boardroom:{x:63,y:192},enter:{x:213,y:14}});
   DB.set('rot_Marbella_boardroom',90);DB.set('rot_Marbella_allhands',90);DB.set('rot_Marbella_enter',90);
@@ -2241,21 +2251,21 @@ if(DB.get('appver','')!=='v47'){
     DB.set('el_Malta_room-L5-4','Citadella');
   // Malta floor N desks
   var mpM=DB.get('mp_Malta',{});
-  // Malta floor: entrance LEFT → far end RIGHT (mirrored from PDF)
-  // LEFT: WPS(N1) → Corp IT(N2-N8) → Tech(N9-N16) upper row
-  // CENTER: Finance(N25-N30) upper, Legal(N17-N24) below Tech, Hot Desks(N31-N40) center-right
-  // RIGHT: People Ops(N41-N46) upper, Ops/Commercial(N47-N53) lower
   var nd={
     'malta-d-N1':{x:60,y:100},
-    'malta-d-N2':{x:130,y:70},'malta-d-N3':{x:180,y:70},'malta-d-N4':{x:230,y:70},'malta-d-N5':{x:280,y:70},'malta-d-N6':{x:130,y:122},'malta-d-N7':{x:180,y:122},'malta-d-N8':{x:230,y:122},
-    'malta-d-N9':{x:360,y:70},'malta-d-N10':{x:410,y:70},'malta-d-N11':{x:460,y:70},'malta-d-N12':{x:510,y:70},'malta-d-N13':{x:360,y:122},'malta-d-N14':{x:410,y:122},'malta-d-N15':{x:460,y:122},'malta-d-N16':{x:510,y:122},
-    'malta-d-N25':{x:610,y:70},'malta-d-N26':{x:660,y:70},'malta-d-N27':{x:710,y:70},'malta-d-N28':{x:610,y:122},'malta-d-N29':{x:660,y:122},'malta-d-N30':{x:710,y:122},
-    'malta-d-N17':{x:360,y:230},'malta-d-N18':{x:410,y:230},'malta-d-N19':{x:460,y:230},'malta-d-N20':{x:510,y:230},'malta-d-N21':{x:360,y:282},'malta-d-N22':{x:410,y:282},'malta-d-N23':{x:460,y:282},'malta-d-N24':{x:510,y:282},
-    'malta-d-N31':{x:610,y:230},'malta-d-N32':{x:660,y:230},'malta-d-N33':{x:710,y:230},'malta-d-N34':{x:760,y:230},'malta-d-N35':{x:810,y:230},'malta-d-N36':{x:610,y:282},'malta-d-N37':{x:660,y:282},'malta-d-N38':{x:710,y:282},'malta-d-N39':{x:760,y:282},'malta-d-N40':{x:810,y:282},
-    'malta-d-N41':{x:880,y:70},'malta-d-N42':{x:930,y:70},'malta-d-N43':{x:980,y:70},'malta-d-N44':{x:880,y:122},'malta-d-N45':{x:930,y:122},'malta-d-N46':{x:980,y:122},
-    'malta-d-N47':{x:880,y:230},'malta-d-N48':{x:930,y:230},'malta-d-N49':{x:980,y:230},'malta-d-N50':{x:1030,y:230},'malta-d-N51':{x:880,y:282},'malta-d-N52':{x:930,y:282},'malta-d-N53':{x:980,y:282}};
+    'malta-d-N2':{x:130,y:70},'malta-d-N3':{x:180,y:70},'malta-d-N4':{x:130,y:122},'malta-d-N5':{x:180,y:122},
+    'malta-d-N6':{x:280,y:60},'malta-d-N7':{x:330,y:60},'malta-d-N8':{x:380,y:60},'malta-d-N9':{x:430,y:60},'malta-d-N10':{x:480,y:60},
+    'malta-d-N11':{x:280,y:112},'malta-d-N12':{x:330,y:112},'malta-d-N13':{x:380,y:112},'malta-d-N14':{x:430,y:112},'malta-d-N15':{x:480,y:112},
+    'malta-d-N16':{x:280,y:164},'malta-d-N17':{x:330,y:164},'malta-d-N18':{x:380,y:164},'malta-d-N19':{x:430,y:164},'malta-d-N20':{x:480,y:164},
+    'malta-d-N21':{x:280,y:216},'malta-d-N22':{x:330,y:216},'malta-d-N23':{x:380,y:216},'malta-d-N24':{x:430,y:216},'malta-d-N25':{x:480,y:216},
+    'malta-d-N26':{x:280,y:268},'malta-d-N27':{x:330,y:268},
+    'malta-d-N28':{x:600,y:60},'malta-d-N29':{x:650,y:60},'malta-d-N30':{x:700,y:60},'malta-d-N31':{x:600,y:112},'malta-d-N32':{x:650,y:112},'malta-d-N33':{x:700,y:112},
+    'malta-d-N34':{x:810,y:60},'malta-d-N35':{x:860,y:60},'malta-d-N36':{x:910,y:60},'malta-d-N37':{x:810,y:112},'malta-d-N38':{x:860,y:112},'malta-d-N39':{x:910,y:112},
+    'malta-d-N40':{x:130,y:340},'malta-d-N41':{x:180,y:340},'malta-d-N42':{x:130,y:392},'malta-d-N43':{x:180,y:392},
+    'malta-d-N44':{x:600,y:340},'malta-d-N45':{x:650,y:340},'malta-d-N46':{x:600,y:392},'malta-d-N47':{x:650,y:392},
+    'malta-d-N48':{x:810,y:340},'malta-d-N49':{x:860,y:340},'malta-d-N50':{x:910,y:340},'malta-d-N51':{x:810,y:392},'malta-d-N52':{x:860,y:392},'malta-d-N53':{x:910,y:392}};
   Object.assign(mpM,nd);DB.set('mp_Malta',mpM);
-  DB.set('appver','v47');
+  DB.set('appver','v48');
 }
 
 // ═══ OFFICE PICKER ═══
