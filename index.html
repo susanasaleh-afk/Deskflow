@@ -1106,7 +1106,7 @@ function renderFloorMap(){
     '<div class="legend-item"><div class="legend-dot" style="background:#BEBEBE;border-color:#999999"></div>Booked</div>'+
     '<div class="legend-item"><div class="legend-dot" style="background:var(--blue-bg);border-color:var(--blue-border)"></div>Mine</div>'+
     '<div class="legend-item"><div class="legend-dot" style="background:var(--purple-bg);border-color:var(--purple-border)"></div>Fixed</div>'+
-    (S.office==='Malta'&&S.maltaFloor==='Malta'?(function(){var g=OFFICES.Malta.maltaGroups;return'<span style="margin:0 8px;color:var(--border)">|</span>'+g.map(function(gr){return'<div class="legend-item"><div class="legend-dot" style="background:'+gr.color+';border-color:'+gr.color+'"></div>'+gr.label+'</div>';}).join('');})():''))+
+    (S.office==='Malta'&&S.maltaFloor==='Malta'?(function(){var g=OFFICES.Malta.maltaGroups;return'<span style="margin:0 8px;color:var(--border)">|</span>'+g.map(function(gr){return'<div class="legend-item"><div class="legend-dot" style="background:'+gr.color+'33;border-color:'+gr.color+'"></div>'+gr.label+'</div>';}).join('');})():''))+
   '</div>';
 }
 
