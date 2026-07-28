@@ -1105,7 +1105,8 @@ function renderFloorMap(){
     '<div class="legend-item"><div class="legend-dot" style="background:#BDF5EA;border-color:#2AB8A0"></div>Available</div>'+
     '<div class="legend-item"><div class="legend-dot" style="background:#BEBEBE;border-color:#999999"></div>Booked</div>'+
     '<div class="legend-item"><div class="legend-dot" style="background:var(--blue-bg);border-color:var(--blue-border)"></div>Mine</div>'+
-    '<div class="legend-item"><div class="legend-dot" style="background:var(--purple-bg);border-color:var(--purple-border)"></div>Fixed</div>')+
+    '<div class="legend-item"><div class="legend-dot" style="background:var(--purple-bg);border-color:var(--purple-border)"></div>Fixed</div>'+
+    (S.office==='Malta'&&S.maltaFloor==='Malta'?(function(){var g=OFFICES.Malta.maltaGroups;return'<span style="margin:0 8px;color:var(--border)">|</span>'+g.map(function(gr){return'<div class="legend-item"><div class="legend-dot" style="background:'+gr.color+';border-color:'+gr.color+'"></div>'+gr.label+'</div>';}).join('');})():''))+
   '</div>';
 }
 
@@ -1205,16 +1206,6 @@ function renderMalta(cfg,D){
     });
     yPos+=32+(Math.ceil(g.desks.length/8)*52)+16;
   });
-  if(floor==='Malta'){
-    html+='<div style="position:absolute;left:60px;top:520px;display:flex;flex-wrap:wrap;gap:10px 20px;max-width:1000px">';
-    groups.forEach(function(g){
-      html+='<div style="display:flex;align-items:center;gap:5px;font-size:10px;color:var(--text)">'+
-        '<div style="width:13px;height:13px;border-radius:3px;background:'+g.color+';flex-shrink:0"></div>'+
-        '<span>'+g.label+'</span>'+
-      '</div>';
-    });
-    html+='</div>';
-  }
   html+='</div>';
   return html;
 }
@@ -2122,7 +2113,7 @@ function bindAll(){
 
 // ═══ START ═══
 // Clear version cache on load
-if(DB.get('appver','')!=='v55'){
+if(DB.get('appver','')!=='v56'){
   // Marbella
   DB.set('mp_Marbella',{malaga:{x:470,y:0},linnea:{x:357,y:1},kitchen:{x:278,y:1},allhands:{x:0,y:177},lcluster:{x:435,y:32},ceo:{x:561,y:215},rcluster:{x:272,y:35},boardroom:{x:63,y:192},enter:{x:213,y:14}});
   DB.set('rot_Marbella_boardroom',90);DB.set('rot_Marbella_allhands',90);DB.set('rot_Marbella_enter',90);
@@ -2283,7 +2274,7 @@ if(DB.get('appver','')!=='v55'){
     // Ops B (brown, 2) — mesa mixta con Tech E
     'malta-d-N52':{x:800,y:207},'malta-d-N53':{x:850,y:207}};
   Object.assign(mpM,nd);DB.set('mp_Malta',mpM);
-  DB.set('appver','v55');
+  DB.set('appver','v56');
 }
 
 // ═══ OFFICE PICKER ═══
