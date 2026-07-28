@@ -2138,7 +2138,7 @@ function bindAll(){
 
 // ═══ START ═══
 // Clear version cache on load
-if(DB.get('appver','')!=='v64'){
+if(DB.get('appver','')!=='v65'){
   // Marbella
   DB.set('mp_Marbella',{malaga:{x:470,y:0},linnea:{x:357,y:1},kitchen:{x:278,y:1},allhands:{x:0,y:177},lcluster:{x:435,y:32},ceo:{x:561,y:215},rcluster:{x:272,y:35},boardroom:{x:63,y:192},enter:{x:213,y:14}});
   DB.set('rot_Marbella_boardroom',90);DB.set('rot_Marbella_allhands',90);DB.set('rot_Marbella_enter',90);
@@ -2265,32 +2265,54 @@ if(DB.get('appver','')!=='v64'){
     DB.set('el_Malta_room-L5-2','Comino');
     DB.set('el_Malta_room-L5-3','Filfla');
     DB.set('el_Malta_room-L5-4','Citadella');
-  // Malta floor N desks — v57: snapped to clean grid from user's manual layout
-  var mpM=DB.get('mp_Malta',{});
-  var nd={
+  DB.set('mp_Malta',{
+    'malta-floors':{x:4,y:4},
+    'malta-rest':{x:1147,y:140},
+    'malta-room-0':{x:218,y:21},'malta-room-1':{x:254,y:375},'malta-room-2':{x:252,y:423},'malta-room-3':{x:252,y:470},'malta-room-4':{x:403,y:474},'malta-room-5':{x:1054,y:394},'malta-room-6':{x:930,y:393},'malta-room-7':{x:589,y:462},
+    'malta-room-L5-0':{x:200,y:100},'malta-room-L5-1':{x:306,y:384},'malta-room-L5-2':{x:306,y:430},'malta-room-L5-3':{x:306,y:476},'malta-room-L5-4':{x:456,y:476},
+    'malta-room-L4-0':{x:720,y:0},'malta-room-L4-1':{x:462,y:449},'malta-room-L4-2':{x:462,y:493},'malta-room-L4-3':{x:604,y:449},'malta-room-L4-4':{x:604,y:493},'malta-room-L4-5':{x:762,y:470},'malta-room-L4-6':{x:962,y:462},'malta-room-L4-7':{x:1092,y:462},
+    'malta-room-Malta-0':{x:172,y:98},'malta-room-Malta-1':{x:347,y:418},'malta-room-Malta-2':{x:348,y:461},'malta-room-Malta-3':{x:347,y:509},'malta-room-Malta-4':{x:544,y:445},
+    'malta-l5-glbl-0':{x:47,y:186},'malta-l5-glbl-1':{x:178,y:187},'malta-l5-glbl-2':{x:394,y:101},'malta-l5-glbl-3':{x:537,y:310},'malta-l5-glbl-4':{x:678,y:189},'malta-l5-glbl-5':{x:566,y:174},'malta-l5-glbl-6':{x:878,y:0},'malta-l5-glbl-7':{x:815,y:138},'malta-l5-glbl-8':{x:684,y:219},'malta-l5-glbl-9':{x:848,y:204},'malta-l5-glbl-10':{x:117,y:78},
+    'malta-l4-glbl-0':{x:280,y:100},'malta-l4-glbl-1':{x:959,y:177},'malta-l4-glbl-2':{x:732,y:406},'malta-l4-glbl-3':{x:556,y:361},'malta-l4-glbl-4':{x:850,y:215},'malta-l4-glbl-5':{x:720,y:330},'malta-l4-glbl-6':{x:315,y:310},'malta-l4-glbl-7':{x:720,y:215},'malta-l4-glbl-8':{x:840,y:10},'malta-l4-glbl-9':{x:30,y:160},
+    'malta-d-L1':{x:149,y:25},'malta-d-L2':{x:209,y:25},'malta-d-L3':{x:209,y:75},'malta-d-L4':{x:269,y:75},'malta-d-L5':{x:269,y:25},'malta-d-L6':{x:149,y:75},
+    'malta-d-L7':{x:125,y:326},'malta-d-L8':{x:430,y:40},'malta-d-L9':{x:175,y:276},'malta-d-L10':{x:480,y:40},'malta-d-L11':{x:527,y:232},'malta-d-L13':{x:530,y:40},
+    'malta-d-L14':{x:1100,y:106},'malta-d-L15':{x:1050,y:106},'malta-d-L16':{x:1150,y:106},'malta-d-L17':{x:1000,y:106},
+    'malta-d-L18':{x:430,y:90},'malta-d-L19':{x:209,y:125},'malta-d-L20':{x:149,y:175},'malta-d-L21':{x:209,y:175},'malta-d-L22':{x:269,y:175},'malta-d-L23':{x:1200,y:245},
+    'malta-d-L25':{x:427,y:182},'malta-d-L26':{x:477,y:182},'malta-d-L27':{x:527,y:182},'malta-d-L28':{x:427,y:232},
+    'malta-d-L29':{x:1050,y:195},'malta-d-L30':{x:1050,y:245},'malta-d-L31':{x:1100,y:195},'malta-d-L32':{x:1100,y:245},
+    'malta-d-L33':{x:52,y:475},'malta-d-L34':{x:102,y:475},'malta-d-L35':{x:152,y:475},'malta-d-L36':{x:202,y:475},'malta-d-L37':{x:52,y:525},'malta-d-L38':{x:102,y:525},'malta-d-L39':{x:152,y:525},'malta-d-L40':{x:202,y:525},
+    'malta-d-L41':{x:480,y:90},'malta-d-L42':{x:530,y:90},'malta-d-L43':{x:125,y:276},'malta-d-L44':{x:225,y:276},
+    'malta-d-L45':{x:1150,y:195},'malta-d-L46':{x:1150,y:245},'malta-d-L47':{x:7,y:405},'malta-d-L48':{x:149,y:125},'malta-d-L49':{x:269,y:125},'malta-d-L51':{x:1200,y:195},'malta-d-L52':{x:175,y:326},
+    'malta-d-L53':{x:675,y:70},'malta-d-L54':{x:725,y:70},'malta-d-L55':{x:775,y:70},'malta-d-L56':{x:825,y:70},'malta-d-L57':{x:675,y:120},'malta-d-L58':{x:725,y:120},'malta-d-L59':{x:775,y:120},'malta-d-L60':{x:825,y:120},'malta-d-L61':{x:891,y:96},'malta-d-L62':{x:673,y:0},'malta-d-L63':{x:1200,y:106},'malta-d-L64':{x:477,y:232},'malta-d-L65':{x:225,y:326},
+    'malta-d-M1':{x:100,y:526},'malta-d-M2':{x:160,y:526},'malta-d-M3':{x:100,y:474},'malta-d-M4':{x:160,y:474},'malta-d-M5':{x:100,y:422},'malta-d-M6':{x:160,y:422},'malta-d-M7':{x:100,y:370},'malta-d-M8':{x:160,y:370},
+    'malta-d-M9':{x:100,y:270},'malta-d-M10':{x:150,y:270},'malta-d-M11':{x:100,y:220},'malta-d-M12':{x:150,y:220},'malta-d-M13':{x:100,y:170},'malta-d-M14':{x:150,y:170},
+    'malta-d-M15':{x:300,y:220},'malta-d-M16':{x:350,y:220},'malta-d-M17':{x:400,y:220},'malta-d-M18':{x:300,y:170},'malta-d-M19':{x:350,y:170},'malta-d-M20':{x:400,y:170},
+    'malta-d-M21':{x:470,y:120},'malta-d-M22':{x:530,y:120},'malta-d-M23':{x:470,y:70},'malta-d-M24':{x:530,y:70},'malta-d-M25':{x:470,y:20},'malta-d-M26':{x:530,y:20},
+    'malta-d-M27':{x:675,y:20},'malta-d-M28':{x:725,y:20},'malta-d-M29':{x:675,y:70},'malta-d-M30':{x:725,y:70},
+    'malta-d-M33':{x:870,y:20},'malta-d-M34':{x:920,y:20},'malta-d-M35':{x:920,y:70},'malta-d-M36':{x:870,y:70},
+    'malta-d-M37':{x:1040,y:70},'malta-d-M38':{x:1100,y:70},'malta-d-M39':{x:1040,y:20},'malta-d-M40':{x:1100,y:20},
+    'malta-d-M41':{x:740,y:370},'malta-d-M42':{x:740,y:420},'malta-d-M43':{x:840,y:420},'malta-d-M44':{x:900,y:420},'malta-d-M45':{x:840,y:370},'malta-d-M46':{x:680,y:420},'malta-d-M47':{x:680,y:370},'malta-d-M48':{x:900,y:370},
+    'malta-d-M49':{x:8,y:550},'malta-d-M50':{x:1140,y:220},'malta-d-M51':{x:1190,y:90},'malta-d-M52':{x:1250,y:90},
+    'malta-d-M53':{x:830,y:270},'malta-d-M54':{x:890,y:270},'malta-d-M55':{x:950,y:270},'malta-d-M56':{x:1010,y:270},'malta-d-M57':{x:1070,y:270},
+    'malta-d-M58':{x:830,y:330},'malta-d-M59':{x:890,y:330},'malta-d-M60':{x:950,y:330},'malta-d-M69':{x:1010,y:330},'malta-d-M70':{x:1070,y:330},
+    'malta-d-M61':{x:100,y:420},'malta-d-M62':{x:150,y:420},'malta-d-M63':{x:100,y:370},'malta-d-M64':{x:150,y:370},'malta-d-M65':{x:100,y:520},'malta-d-M66':{x:150,y:520},'malta-d-M67':{x:100,y:470},'malta-d-M68':{x:150,y:470},
     'malta-d-N1':{x:55,y:365},
     'malta-d-N2':{x:184,y:432},'malta-d-N3':{x:238,y:432},'malta-d-N4':{x:184,y:486},'malta-d-N5':{x:238,y:486},
-    'malta-d-N6':{x:470,y:10},'malta-d-N7':{x:470,y:62},'malta-d-N8':{x:470,y:114},
-    'malta-d-N9':{x:524,y:10},'malta-d-N10':{x:524,y:62},'malta-d-N11':{x:524,y:114},
-    'malta-d-N12':{x:326,y:10},'malta-d-N13':{x:380,y:10},'malta-d-N14':{x:326,y:62},
-    'malta-d-N15':{x:380,y:62},'malta-d-N16':{x:326,y:114},'malta-d-N17':{x:380,y:114},
+    'malta-d-N6':{x:470,y:10},'malta-d-N7':{x:470,y:62},'malta-d-N8':{x:470,y:114},'malta-d-N9':{x:524,y:10},'malta-d-N10':{x:524,y:62},'malta-d-N11':{x:524,y:114},
+    'malta-d-N12':{x:326,y:10},'malta-d-N13':{x:380,y:10},'malta-d-N14':{x:326,y:62},'malta-d-N15':{x:380,y:62},'malta-d-N16':{x:326,y:114},'malta-d-N17':{x:380,y:114},
     'malta-d-N18':{x:180,y:314},'malta-d-N19':{x:236,y:314},'malta-d-N20':{x:180,y:366},'malta-d-N21':{x:236,y:366},
-    'malta-d-N22':{x:180,y:222},'malta-d-N23':{x:234,y:222},'malta-d-N24':{x:288,y:222},
-    'malta-d-N25':{x:180,y:172},'malta-d-N26':{x:234,y:172},'malta-d-N27':{x:288,y:172},
-    'malta-d-N28':{x:10,y:182},'malta-d-N29':{x:64,y:182},'malta-d-N30':{x:10,y:132},
-    'malta-d-N31':{x:64,y:132},'malta-d-N32':{x:10,y:82},'malta-d-N33':{x:64,y:82},
+    'malta-d-N22':{x:180,y:222},'malta-d-N23':{x:234,y:222},'malta-d-N24':{x:288,y:222},'malta-d-N25':{x:180,y:172},'malta-d-N26':{x:234,y:172},'malta-d-N27':{x:288,y:172},
+    'malta-d-N28':{x:10,y:182},'malta-d-N29':{x:64,y:182},'malta-d-N30':{x:10,y:132},'malta-d-N31':{x:64,y:132},'malta-d-N32':{x:10,y:82},'malta-d-N33':{x:64,y:82},
     'malta-d-N34':{x:670,y:190},'malta-d-N35':{x:720,y:190},'malta-d-N36':{x:670,y:242},'malta-d-N37':{x:720,y:242},
     'malta-d-N38':{x:800,y:156},'malta-d-N39':{x:852,y:156},
     'malta-d-N40':{x:632,y:10},'malta-d-N41':{x:690,y:10},'malta-d-N42':{x:632,y:62},'malta-d-N43':{x:690,y:62},
     'malta-d-N44':{x:816,y:10},'malta-d-N45':{x:870,y:10},'malta-d-N46':{x:816,y:62},'malta-d-N47':{x:870,y:62},
-    'malta-d-N48':{x:924,y:156},'malta-d-N49':{x:980,y:156},'malta-d-N50':{x:924,y:210},'malta-d-N51':{x:980,y:210},
-    'malta-d-N52':{x:800,y:210},'malta-d-N53':{x:852,y:210},
-    };
-  Object.assign(mpM,nd);
-  DB.set('mp_Malta',mpM);
+    'malta-d-N48':{x:924,y:156},'malta-d-N49':{x:980,y:156},'malta-d-N50':{x:924,y:210},'malta-d-N51':{x:980,y:210},'malta-d-N52':{x:800,y:210},'malta-d-N53':{x:852,y:210},
+    'malta-n-bathroom':{x:0,y:266},'malta-n-entrance':{x:4,y:490},'malta-n-kitchen':{x:1291,y:99},'malta-n-allhands':{x:1339,y:201}
+  });
   DB.set('el_Malta_desk_N1','Boban');DB.set('el_Malta_desk_N12','Claudio');
   var hf=DB.get('hidden_floors',[]);if(!hf.includes('Malta|L4'))hf.push('Malta|L4');DB.set('hidden_floors',hf);
-  DB.set('appver','v64');
+  DB.set('appver','v65');
 }
 
 // ═══ OFFICE PICKER ═══
