@@ -602,6 +602,13 @@ const HiddenOffices={
   isHidden(name){return this.get().includes(name)},
   toggle(name){const h=this.get();const i=h.indexOf(name);if(i>-1)h.splice(i,1);else h.push(name);this.set(h);},
 };
+const HiddenFloors={
+  _key:'hidden_floors',
+  get(){return DB.get(this._key,[])},
+  set(list){DB.set(this._key,list)},
+  isHidden(office,floor){return this.get().includes(office+'|'+floor)},
+  toggle(office,floor){const k=office+'|'+floor;const h=this.get();const i=h.indexOf(k);if(i>-1)h.splice(i,1);else h.push(k);this.set(h);},
+};
 
 // ═══ STATE ═══
 let S={
@@ -900,6 +907,15 @@ function renderSidebar(){
             '🙈 Hide '+nm+
           '</button>'
         ).join('')+
+        (S.office==='Malta'?
+          '<div style="font-size:10px;color:var(--text3);margin:8px 0 4px;padding-top:6px;border-top:1px solid var(--border)">Malta floors</div>'+
+          (OFFICES.Malta.floors||[]).map(function(f){
+            var hidden=HiddenFloors.isHidden('Malta',f);
+            return '<button class="office-btn" data-toggle-floor="'+f+'" style="color:'+(hidden?'var(--text3)':'var(--text)')+';font-style:'+(hidden?'italic':'normal')+';font-size:11px">'+
+              (hidden?'👁 Show ':'🙈 Hide ')+f+
+            '</button>';
+          }).join('')
+        :'')+
       '</div>':'')+
     '</div>'+
     '<div class="user-section"><div class="user-card">'+
@@ -1145,6 +1161,8 @@ function renderMarbella(cfg,D,date){
 
 // ─── MALTA MAP ───
 function renderMalta(cfg,D){
+  var visibleFloors=(cfg.floors||[]).filter(function(f){return!HiddenFloors.isHidden(S.office,f);});
+  if(visibleFloors.length&&!visibleFloors.includes(S.maltaFloor)){setState({maltaFloor:visibleFloors[0]});}
   var floor=S.maltaFloor,groups=floor==='L5'?cfg.l5Groups:floor==='Malta'?cfg.maltaGroups:cfg.l4Groups,o=S.office;
   var DM=function(id,color,grpShort){
     var custom=EL.get(o,'desk_'+id,'');
@@ -1175,7 +1193,7 @@ function renderMalta(cfg,D){
   var html='<div id="map-canvas-'+o+'" class="map-canvas'+(S.editMode?' edit-on':'')+'" style="min-height:600px;min-width:600px">';
   html+=makeEl(o,'malta-floors',4,4,
     '<div style="display:flex;gap:5px">'+
-    cfg.floors.map(function(f){
+    visibleFloors.map(function(f){
       var active=f===floor;
       return '<button class="malta-floor-btn" data-floor="'+f+'" style="padding:4px 12px;border-radius:var(--r);border:1.5px solid '+(active?'var(--green)':'var(--border)')+';background:'+(active?'var(--green-bg)':'none')+';color:'+(active?'var(--green-dark)':'var(--text2)')+';font-size:12px;font-weight:'+(active?600:400)+';cursor:pointer;font-family:inherit">'+f+'</button>';
     }).join('')+
@@ -1857,6 +1875,7 @@ function bindAll(){
   })});
   document.querySelectorAll('[data-hide-office]').forEach(function(b){b.addEventListener('click',function(e){e.stopPropagation();HiddenOffices.toggle(b.dataset.hideOffice);render();})});
   document.querySelectorAll('[data-show-office]').forEach(function(b){b.addEventListener('click',function(e){e.stopPropagation();HiddenOffices.toggle(b.dataset.showOffice);render();})});
+  document.querySelectorAll('[data-toggle-floor]').forEach(function(b){b.addEventListener('click',function(e){e.stopPropagation();HiddenFloors.toggle('Malta',b.dataset.toggleFloor);render();})});
   document.querySelectorAll('[data-pet]').forEach(function(b){b.addEventListener('click',function(){setState({modal:{type:'pet',office:S.office}});});});
   function doLogout(){DB.set('user',null);Auth.signOut();}
   document.getElementById('logout-btn')?.addEventListener('click',doLogout);
@@ -2274,6 +2293,7 @@ if(DB.get('appver','')!=='v62'){
   if(!mpM['malta-n-bathroom']||mpM['malta-n-bathroom'].x>1200)mpM['malta-n-bathroom']={x:0,y:266};
   DB.set('mp_Malta',mpM);
   DB.set('el_Malta_desk_N1','Boban');DB.set('el_Malta_desk_N12','Claudio');
+  var hf=DB.get('hidden_floors',[]);if(!hf.includes('Malta|L4'))hf.push('Malta|L4');DB.set('hidden_floors',hf);
   DB.set('appver','v62');
 }
 
