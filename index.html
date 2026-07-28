@@ -378,14 +378,14 @@ const OFFICES={
     ],
     maltaRooms:['Blue Grotto','Mdina','Comino','Filfla','Cittadella'],
     maltaGroups:[
-      {id:'wps',      color:'#FFC107',label:'WPS Main Reception',          desks:['N1']},
-      {id:'corpit',   color:'#FF9800',label:'Corp IT',                     desks:['N2','N3','N4','N5']},
-      {id:'finance',  color:'#E53935',label:'Finance',                     desks:['N6','N7','N8','N9','N10','N11']},
-      {id:'legal',    color:'#85C1E9',label:'Legal & Compliance / Infosec',desks:['N12','N13','N14','N15','N16','N17']},
-      {id:'tech',     color:'#1565C0',label:'Tech',                        desks:['N18','N19','N20','N21','N22','N23','N24','N25','N26','N27','N28','N29','N30','N31','N32','N33','N34','N35','N36','N37','N38','N39']},
-      {id:'hotdesks', color:'#9E9E9E',label:'Hot Desks',                   desks:['N40','N41','N42','N43']},
-      {id:'peopleops',color:'#27AE60',label:'People Ops',                  desks:['N44','N45','N46','N47']},
-      {id:'ops',      color:'#795548',label:'Operations / Commercial',     desks:['N48','N49','N50','N51','N52','N53']},
+      {id:'wps',      color:'#FFC107',label:'WPS Main Reception',          short:'WPS',     desks:['N1']},
+      {id:'corpit',   color:'#FF9800',label:'Corp IT',                     short:'Corp IT', desks:['N2','N3','N4','N5']},
+      {id:'finance',  color:'#E53935',label:'Finance',                     short:'Finance', desks:['N6','N7','N8','N9','N10','N11']},
+      {id:'legal',    color:'#85C1E9',label:'Legal & Compliance / Infosec',short:'Legal',   desks:['N12','N13','N14','N15','N16','N17']},
+      {id:'tech',     color:'#1565C0',label:'Tech',                        short:'Tech',    desks:['N18','N19','N20','N21','N22','N23','N24','N25','N26','N27','N28','N29','N30','N31','N32','N33','N34','N35','N36','N37','N38','N39']},
+      {id:'hotdesks', color:'#9E9E9E',label:'Hot Desks',                   short:'Hot',     desks:['N40','N41','N42','N43']},
+      {id:'peopleops',color:'#27AE60',label:'People Ops',                  short:'People',  desks:['N44','N45','N46','N47']},
+      {id:'ops',      color:'#795548',label:'Operations / Commercial',     short:'Ops',     desks:['N48','N49','N50','N51','N52','N53']},
     ]},
   Madrid:{color:'#7F77DD',flag:'\ud83c\uddea\ud83c\uddf8',layout:'madrid',food:[{"name": "Apeteat", "logo": "https://s3.eu-central-1.amazonaws.com/apeteat.media/web/images/svg/apeteat_logo.svg", "type": "web", "url": "https://www.apeteat.com/acceso"}],desks:30,
     rooms:['Meeting Room 1','Meeting Room 2','Meeting Room 3','Board Room'],
@@ -586,7 +586,7 @@ function fmtD(str){
   if(str===ds(0))return'Today';if(str===ds(1))return'Tomorrow';
   return d.toLocaleDateString('en-GB',{weekday:'short',day:'numeric',month:'short'});
 }
-function deskLabel(id){var custom=EL.get(S.office,'desk_'+id,'');if(custom)return custom;if(S.office==='Malta'&&/^N\d+$/.test(id)){var grp=(OFFICES.Malta.maltaGroups||[]).find(function(g){return g.desks.indexOf(id)!==-1;});if(grp)return grp.label;}return DESK_ALIASES[id]||id;}
+function deskLabel(id){var custom=EL.get(S.office,'desk_'+id,'');if(custom)return custom;if(S.office==='Malta'&&/^N\d+$/.test(id)){var grp=(OFFICES.Malta.maltaGroups||[]).find(function(g){return g.desks.indexOf(id)!==-1;});if(grp)return grp.short||grp.label;}return DESK_ALIASES[id]||id;}
 let tT=null;
 function toast(msg,type='success'){
   const old=document.getElementById('_t');if(old)old.remove();if(tT)clearTimeout(tT);
@@ -2119,7 +2119,7 @@ function bindAll(){
 
 // ═══ START ═══
 // Clear version cache on load
-if(DB.get('appver','')!=='v59'){
+if(DB.get('appver','')!=='v60'){
   // Marbella
   DB.set('mp_Marbella',{malaga:{x:470,y:0},linnea:{x:357,y:1},kitchen:{x:278,y:1},allhands:{x:0,y:177},lcluster:{x:435,y:32},ceo:{x:561,y:215},rcluster:{x:272,y:35},boardroom:{x:63,y:192},enter:{x:213,y:14}});
   DB.set('rot_Marbella_boardroom',90);DB.set('rot_Marbella_allhands',90);DB.set('rot_Marbella_enter',90);
@@ -2280,11 +2280,9 @@ if(DB.get('appver','')!=='v59'){
     // Ops B (brown, 2) — mesa mixta fila inferior
     'malta-d-N52':{x:800,y:210},'malta-d-N53':{x:852,y:210}};
   Object.assign(mpM,nd);
-  mpM['malta-n-allhands']={x:200,y:400};mpM['malta-n-kitchen']={x:400,y:400};
-  mpM['malta-n-entrance']={x:500,y:400};mpM['malta-n-bathroom']={x:600,y:400};
   DB.set('mp_Malta',mpM);
   DB.set('el_Malta_desk_N1','Boban');DB.set('el_Malta_desk_N12','Claudio');
-  DB.set('appver','v59');
+  DB.set('appver','v60');
 }
 
 // ═══ OFFICE PICKER ═══
