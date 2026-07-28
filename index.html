@@ -1146,9 +1146,9 @@ function renderMarbella(cfg,D,date){
 // ─── MALTA MAP ───
 function renderMalta(cfg,D){
   var floor=S.maltaFloor,groups=floor==='L5'?cfg.l5Groups:floor==='Malta'?cfg.maltaGroups:cfg.l4Groups,o=S.office;
-  var DM=function(id,color){
+  var DM=function(id,color,grpShort){
     var custom=EL.get(o,'desk_'+id,'');
-    var displayName=custom||id;
+    var displayName=custom||(grpShort&&floor==='Malta'?grpShort:id);
     var bg=color?color+'33':'var(--green-bg)';
     var bc=color||'var(--green-border)';
     var tc=color||'var(--green-dark)';
@@ -1208,7 +1208,7 @@ function renderMalta(cfg,D){
       var cols=Math.min(g.desks.length,8);
       var dx=4+(di%cols)*50;
       var dy=yPos+32+(Math.floor(di/cols)*52);
-      html+=makeEl(o,'malta-d-'+id, dx, dy, DM(id,g.color));
+      html+=makeEl(o,'malta-d-'+id, dx, dy, DM(id,g.color,g.short||g.label));
     });
     yPos+=32+(Math.ceil(g.desks.length/8)*52)+16;
   });
@@ -2280,6 +2280,10 @@ if(DB.get('appver','')!=='v60'){
     // Ops B (brown, 2) — mesa mixta fila inferior
     'malta-d-N52':{x:800,y:210},'malta-d-N53':{x:852,y:210}};
   Object.assign(mpM,nd);
+  if(!mpM['malta-n-allhands']||mpM['malta-n-allhands'].y===400)mpM['malta-n-allhands']={x:60,y:320};
+  if(!mpM['malta-n-kitchen'] ||mpM['malta-n-kitchen'].y ===400)mpM['malta-n-kitchen'] ={x:250,y:320};
+  if(!mpM['malta-n-entrance']||mpM['malta-n-entrance'].y===400)mpM['malta-n-entrance']={x:360,y:320};
+  if(!mpM['malta-n-bathroom']||mpM['malta-n-bathroom'].y===400)mpM['malta-n-bathroom']={x:460,y:320};
   DB.set('mp_Malta',mpM);
   DB.set('el_Malta_desk_N1','Boban');DB.set('el_Malta_desk_N12','Claudio');
   DB.set('appver','v60');
