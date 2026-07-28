@@ -2365,6 +2365,26 @@ async function initApp(){
     await Promise.all([FF.load(), RF.load(), CI.load(), USERS.load()]);
     await BK.loadOD(user.office||'Marbella', ds(0));
     await BK.loadUser(user.id);
+
+    // Handle ?checkin=OfficeName QR scan
+    const _qp = new URLSearchParams(window.location.search);
+    const _ciOffice = _qp.get('checkin');
+    if(_ciOffice && OFFICES[_ciOffice]){
+      const _ciDate = ds(0);
+      await BK.loadOD(_ciOffice, _ciDate);
+      const _ciDesk = BK.forOD(_ciOffice, _ciDate).find(function(b){return b.type==='desk'&&b.userId===user.id;});
+      setState({user, office: _ciOffice});
+      if(_ciDesk){
+        await CI.add(_ciOffice, _ciDesk.resourceId, _ciDate, user.id, user.name);
+        toast('Checked in at '+_ciOffice+' — '+deskLabel(_ciDesk.resourceId)+' ✓');
+      } else {
+        toast('Welcome to '+_ciOffice+'! No desk booked for today.');
+      }
+      // Clean URL without reload
+      window.history.replaceState({}, '', window.location.pathname);
+      return;
+    }
+
     if(!user.office){
       await showOfficePicker(user);
     } else {
