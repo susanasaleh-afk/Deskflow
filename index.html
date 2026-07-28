@@ -347,7 +347,7 @@ const OFFICES={
     allDesks:['R1','R2','R3','R4','R5','R6','R7','R8','S1','L1','L2','L3','L4','L5','L6','L7','L8','L9','L10'],
     ceoName:'Richard'},
   Malta:{color:'#1D9E75',flag:'\ud83c\uddf2\ud83c\uddf9',layout:'malta',
-    floors:['L5','L4'],desks:88,
+    floors:['L5','L4','Malta'],desks:88,
     rooms:['Blue Grotto','Mdina','Comino','Filfla','Citadella'],roomCaps:{'Blue Grotto':6,Mdina:8,Comino:8,Filfla:6,Citadella:10},
     l4Rooms:['Linnea','Space Invaders','Final Fantasy','Street Fighter','Sonic','Doom','Lemmings','Zelda'],
     l4RoomCaps:{Linnea:8,'Space Invaders':6,'Final Fantasy':6,'Street Fighter':6,Sonic:6,Doom:6,Lemmings:6,Zelda:6},
@@ -375,6 +375,17 @@ const OFFICES={
       {id:'black', color:'#222222',label:'Boban',      desks:['L47']},
       {id:'legal', color:'#1E8449',label:'Legal Office',desks:['L62']},
       {id:'allhands',color:'#B0C4DE',label:'All Hands',desks:[]},
+    ],
+    maltaRooms:[],
+    maltaGroups:[
+      {id:'wps',      color:'#FFC107',label:'WPS Reception',          desks:['N1','N2']},
+      {id:'corpit',   color:'#2196F3',label:'Corp IT',                desks:['N3','N4','N5','N6','N7','N8']},
+      {id:'tech',     color:'#4CAF50',label:'Tech',                   desks:['N9','N10','N11','N12','N13','N14','N15','N16']},
+      {id:'legal',    color:'#E65100',label:'Legal & Compliance',     desks:['N17','N18','N19','N20','N21','N22','N23','N24']},
+      {id:'finance',  color:'#E53935',label:'Finance',                desks:['N25','N26','N27','N28','N29','N30']},
+      {id:'hotdesks', color:'#9E9E9E',label:'Hot Desks',              desks:['N31','N32','N33','N34','N35','N36','N37','N38','N39','N40']},
+      {id:'peopleops',color:'#9C27B0',label:'People Ops',             desks:['N41','N42','N43','N44','N45','N46']},
+      {id:'ops',      color:'#FF9800',label:'Operations / Commercial',desks:['N47','N48','N49','N50','N51','N52','N53']},
     ]},
   Madrid:{color:'#7F77DD',flag:'\ud83c\uddea\ud83c\uddf8',layout:'madrid',food:[{"name": "Apeteat", "logo": "https://s3.eu-central-1.amazonaws.com/apeteat.media/web/images/svg/apeteat_logo.svg", "type": "web", "url": "https://www.apeteat.com/acceso"}],desks:30,
     rooms:['Meeting Room 1','Meeting Room 2','Meeting Room 3','Board Room'],
@@ -1133,7 +1144,7 @@ function renderMarbella(cfg,D,date){
 
 // ─── MALTA MAP ───
 function renderMalta(cfg,D){
-  var floor=S.maltaFloor,groups=floor==='L5'?cfg.l5Groups:cfg.l4Groups,o=S.office;
+  var floor=S.maltaFloor,groups=floor==='L5'?cfg.l5Groups:floor==='Malta'?cfg.maltaGroups:cfg.l4Groups,o=S.office;
   var DM=function(id,color){
     var custom=EL.get(o,'desk_'+id,'');
     var displayName=custom||id;
@@ -1177,7 +1188,7 @@ function renderMalta(cfg,D){
         ?'<input data-label-key="rest-area" value="'+restLabel+'" onmousedown="event.stopPropagation()" style="width:130px;text-align:center;font-size:11px;font-weight:600;border:1px solid #52BE80;border-radius:6px;background:transparent;color:#1E8449;font-family:inherit;outline:none;padding:2px 4px"/>'
         :'<span style="font-size:11px;color:#1E8449;font-weight:600">'+restLabel+'</span>')+
     '</div>','width:160px');
-  var activeRooms=floor==='L4'?(cfg.l4Rooms||cfg.rooms):cfg.rooms;
+  var activeRooms=floor==='L4'?(cfg.l4Rooms||cfg.rooms):floor==='Malta'?(cfg.maltaRooms||[]):cfg.rooms;
   activeRooms.forEach(function(r,i){
     html+=makeEl(o,'malta-room-'+floor+'-'+i,4+(i*132),46,makeZone(o,'room-'+floor+'-'+i,EL.get(o,'room-'+floor+'-'+i,r),'#FFF8E7','#E8C97A','#8A6A00',124,34,false,0));
   });
@@ -2101,7 +2112,7 @@ function bindAll(){
 
 // ═══ START ═══
 // Clear version cache on load
-if(DB.get('appver','')!=='v45'){
+if(DB.get('appver','')!=='v46'){
   // Marbella
   DB.set('mp_Marbella',{malaga:{x:470,y:0},linnea:{x:357,y:1},kitchen:{x:278,y:1},allhands:{x:0,y:177},lcluster:{x:435,y:32},ceo:{x:561,y:215},rcluster:{x:272,y:35},boardroom:{x:63,y:192},enter:{x:213,y:14}});
   DB.set('rot_Marbella_boardroom',90);DB.set('rot_Marbella_allhands',90);DB.set('rot_Marbella_enter',90);
@@ -2228,7 +2239,18 @@ if(DB.get('appver','')!=='v45'){
     DB.set('el_Malta_room-L5-2','Comino');
     DB.set('el_Malta_room-L5-3','Filfla');
     DB.set('el_Malta_room-L5-4','Citadella');
-  DB.set('appver','v45');
+  // Malta floor N desks
+  var mpM=DB.get('mp_Malta',{});
+  var nd={'malta-d-N1':{x:920,y:80},'malta-d-N2':{x:970,y:80},
+    'malta-d-N3':{x:750,y:80},'malta-d-N4':{x:800,y:80},'malta-d-N5':{x:850,y:80},'malta-d-N6':{x:750,y:132},'malta-d-N7':{x:800,y:132},'malta-d-N8':{x:850,y:132},
+    'malta-d-N9':{x:570,y:80},'malta-d-N10':{x:620,y:80},'malta-d-N11':{x:670,y:80},'malta-d-N12':{x:720,y:80},'malta-d-N13':{x:570,y:132},'malta-d-N14':{x:620,y:132},'malta-d-N15':{x:670,y:132},'malta-d-N16':{x:720,y:132},
+    'malta-d-N17':{x:600,y:250},'malta-d-N18':{x:650,y:250},'malta-d-N19':{x:700,y:250},'malta-d-N20':{x:750,y:250},'malta-d-N21':{x:600,y:302},'malta-d-N22':{x:650,y:302},'malta-d-N23':{x:700,y:302},'malta-d-N24':{x:750,y:302},
+    'malta-d-N25':{x:400,y:250},'malta-d-N26':{x:450,y:250},'malta-d-N27':{x:500,y:250},'malta-d-N28':{x:400,y:302},'malta-d-N29':{x:450,y:302},'malta-d-N30':{x:500,y:302},
+    'malta-d-N31':{x:80,y:370},'malta-d-N32':{x:130,y:370},'malta-d-N33':{x:180,y:370},'malta-d-N34':{x:230,y:370},'malta-d-N35':{x:280,y:370},'malta-d-N36':{x:80,y:422},'malta-d-N37':{x:130,y:422},'malta-d-N38':{x:180,y:422},'malta-d-N39':{x:230,y:422},'malta-d-N40':{x:280,y:422},
+    'malta-d-N41':{x:80,y:250},'malta-d-N42':{x:130,y:250},'malta-d-N43':{x:180,y:250},'malta-d-N44':{x:80,y:302},'malta-d-N45':{x:130,y:302},'malta-d-N46':{x:180,y:302},
+    'malta-d-N47':{x:340,y:370},'malta-d-N48':{x:390,y:370},'malta-d-N49':{x:440,y:370},'malta-d-N50':{x:490,y:370},'malta-d-N51':{x:340,y:422},'malta-d-N52':{x:390,y:422},'malta-d-N53':{x:440,y:422}};
+  Object.assign(mpM,nd);DB.set('mp_Malta',mpM);
+  DB.set('appver','v46');
 }
 
 // ═══ OFFICE PICKER ═══
