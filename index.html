@@ -2122,7 +2122,7 @@ function bindAll(){
 
 // ═══ START ═══
 // Clear version cache on load
-if(DB.get('appver','')!=='v49'){
+if(DB.get('appver','')!=='v50'){
   // Marbella
   DB.set('mp_Marbella',{malaga:{x:470,y:0},linnea:{x:357,y:1},kitchen:{x:278,y:1},allhands:{x:0,y:177},lcluster:{x:435,y:32},ceo:{x:561,y:215},rcluster:{x:272,y:35},boardroom:{x:63,y:192},enter:{x:213,y:14}});
   DB.set('rot_Marbella_boardroom',90);DB.set('rot_Marbella_allhands',90);DB.set('rot_Marbella_enter',90);
@@ -2252,20 +2252,19 @@ if(DB.get('appver','')!=='v49'){
   // Malta floor N desks
   var mpM=DB.get('mp_Malta',{});
   var nd={
-    'malta-d-N1':{x:60,y:90},
-    'malta-d-N2':{x:130,y:60},'malta-d-N3':{x:180,y:60},'malta-d-N4':{x:130,y:112},'malta-d-N5':{x:180,y:112},
-    'malta-d-N6':{x:280,y:60},'malta-d-N7':{x:330,y:60},'malta-d-N8':{x:380,y:60},'malta-d-N9':{x:280,y:112},'malta-d-N10':{x:330,y:112},'malta-d-N11':{x:380,y:112},
-    'malta-d-N12':{x:450,y:60},'malta-d-N13':{x:500,y:60},'malta-d-N14':{x:550,y:60},'malta-d-N15':{x:450,y:112},'malta-d-N16':{x:500,y:112},'malta-d-N17':{x:550,y:112},
-    'malta-d-N18':{x:640,y:60},'malta-d-N19':{x:690,y:60},'malta-d-N20':{x:740,y:60},'malta-d-N21':{x:790,y:60},'malta-d-N22':{x:840,y:60},
-    'malta-d-N23':{x:640,y:112},'malta-d-N24':{x:690,y:112},'malta-d-N25':{x:740,y:112},'malta-d-N26':{x:790,y:112},'malta-d-N27':{x:840,y:112},
-    'malta-d-N28':{x:640,y:164},'malta-d-N29':{x:690,y:164},'malta-d-N30':{x:740,y:164},'malta-d-N31':{x:790,y:164},'malta-d-N32':{x:840,y:164},
-    'malta-d-N33':{x:640,y:216},'malta-d-N34':{x:690,y:216},'malta-d-N35':{x:740,y:216},'malta-d-N36':{x:790,y:216},'malta-d-N37':{x:840,y:216},
-    'malta-d-N38':{x:640,y:268},'malta-d-N39':{x:690,y:268},
-    'malta-d-N40':{x:950,y:60},'malta-d-N41':{x:1000,y:60},'malta-d-N42':{x:950,y:112},'malta-d-N43':{x:1000,y:112},
-    'malta-d-N44':{x:1070,y:60},'malta-d-N45':{x:1120,y:60},'malta-d-N46':{x:1070,y:112},'malta-d-N47':{x:1120,y:112},
-    'malta-d-N48':{x:950,y:200},'malta-d-N49':{x:1000,y:200},'malta-d-N50':{x:1050,y:200},'malta-d-N51':{x:950,y:252},'malta-d-N52':{x:1000,y:252},'malta-d-N53':{x:1050,y:252}};
+    'malta-d-N1':{x:60,y:150},
+    'malta-d-N2':{x:130,y:120},'malta-d-N3':{x:180,y:120},'malta-d-N4':{x:130,y:172},'malta-d-N5':{x:180,y:172},
+    'malta-d-N6':{x:290,y:60},'malta-d-N7':{x:340,y:60},'malta-d-N8':{x:290,y:112},'malta-d-N9':{x:340,y:112},'malta-d-N10':{x:290,y:164},'malta-d-N11':{x:340,y:164},
+    'malta-d-N12':{x:460,y:60},'malta-d-N13':{x:510,y:60},'malta-d-N14':{x:460,y:112},'malta-d-N15':{x:510,y:112},'malta-d-N16':{x:460,y:164},'malta-d-N17':{x:510,y:164},
+    'malta-d-N18':{x:290,y:250},'malta-d-N19':{x:340,y:250},'malta-d-N20':{x:290,y:302},'malta-d-N21':{x:340,y:302},
+    'malta-d-N22':{x:630,y:60},'malta-d-N23':{x:680,y:60},'malta-d-N24':{x:730,y:60},'malta-d-N25':{x:630,y:112},'malta-d-N26':{x:680,y:112},'malta-d-N27':{x:730,y:112},
+    'malta-d-N28':{x:630,y:200},'malta-d-N29':{x:680,y:200},'malta-d-N30':{x:730,y:200},'malta-d-N31':{x:630,y:252},'malta-d-N32':{x:680,y:252},'malta-d-N33':{x:730,y:252},
+    'malta-d-N34':{x:460,y:250},'malta-d-N35':{x:510,y:250},'malta-d-N36':{x:460,y:302},'malta-d-N37':{x:510,y:302},'malta-d-N38':{x:460,y:354},'malta-d-N39':{x:510,y:354},
+    'malta-d-N40':{x:840,y:60},'malta-d-N41':{x:890,y:60},'malta-d-N42':{x:840,y:112},'malta-d-N43':{x:890,y:112},
+    'malta-d-N44':{x:840,y:200},'malta-d-N45':{x:890,y:200},'malta-d-N46':{x:840,y:252},'malta-d-N47':{x:890,y:252},
+    'malta-d-N48':{x:960,y:60},'malta-d-N49':{x:1010,y:60},'malta-d-N50':{x:1060,y:60},'malta-d-N51':{x:960,y:112},'malta-d-N52':{x:1010,y:112},'malta-d-N53':{x:1060,y:112}};
   Object.assign(mpM,nd);DB.set('mp_Malta',mpM);
-  DB.set('appver','v49');
+  DB.set('appver','v50');
 }
 
 // ═══ OFFICE PICKER ═══
