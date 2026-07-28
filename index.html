@@ -2265,7 +2265,7 @@ if(DB.get('appver','')!=='v65'){
     DB.set('el_Malta_room-L5-2','Comino');
     DB.set('el_Malta_room-L5-3','Filfla');
     DB.set('el_Malta_room-L5-4','Citadella');
-  DB.set('mp_Malta',{
+  var _def={
     'malta-floors':{x:4,y:4},
     'malta-rest':{x:1147,y:140},
     'malta-room-0':{x:218,y:21},'malta-room-1':{x:254,y:375},'malta-room-2':{x:252,y:423},'malta-room-3':{x:252,y:470},'malta-room-4':{x:403,y:474},'malta-room-5':{x:1054,y:394},'malta-room-6':{x:930,y:393},'malta-room-7':{x:589,y:462},
@@ -2309,7 +2309,8 @@ if(DB.get('appver','')!=='v65'){
     'malta-d-N44':{x:816,y:10},'malta-d-N45':{x:870,y:10},'malta-d-N46':{x:816,y:62},'malta-d-N47':{x:870,y:62},
     'malta-d-N48':{x:924,y:156},'malta-d-N49':{x:980,y:156},'malta-d-N50':{x:924,y:210},'malta-d-N51':{x:980,y:210},'malta-d-N52':{x:800,y:210},'malta-d-N53':{x:852,y:210},
     'malta-n-bathroom':{x:0,y:266},'malta-n-entrance':{x:4,y:490},'malta-n-kitchen':{x:1291,y:99},'malta-n-allhands':{x:1339,y:201}
-  });
+  };
+  var _cur=DB.get('mp_Malta',{});Object.keys(_def).forEach(function(k){if(!_cur[k])_cur[k]=_def[k];});DB.set('mp_Malta',_cur);
   DB.set('el_Malta_desk_N1','Boban');DB.set('el_Malta_desk_N12','Claudio');
   var hf=DB.get('hidden_floors',[]);if(!hf.includes('Malta|L4'))hf.push('Malta|L4');DB.set('hidden_floors',hf);
   DB.set('appver','v65');
