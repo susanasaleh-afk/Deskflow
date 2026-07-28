@@ -586,7 +586,7 @@ function fmtD(str){
   if(str===ds(0))return'Today';if(str===ds(1))return'Tomorrow';
   return d.toLocaleDateString('en-GB',{weekday:'short',day:'numeric',month:'short'});
 }
-function deskLabel(id){var custom=EL.get(S.office,'desk_'+id,'');return custom||DESK_ALIASES[id]||id;}
+function deskLabel(id){var custom=EL.get(S.office,'desk_'+id,'');if(custom)return custom;if(S.office==='Malta'&&/^N\d+$/.test(id)){var grp=(OFFICES.Malta.maltaGroups||[]).find(function(g){return g.desks.indexOf(id)!==-1;});if(grp)return grp.label;}return DESK_ALIASES[id]||id;}
 let tT=null;
 function toast(msg,type='success'){
   const old=document.getElementById('_t');if(old)old.remove();if(tT)clearTimeout(tT);
@@ -1196,7 +1196,7 @@ function renderMalta(cfg,D){
   if(floor==='Malta'){
     html+=makeEl(o,'malta-n-allhands',200,400,makeZone(o,'n-allhands',EL.get(o,'n-allhands','All Hands'),'#EAF3DE','#97C459','#3B6D11',160,50,true,0));
     html+=makeEl(o,'malta-n-kitchen', 400,400,makeZone(o,'n-kitchen', EL.get(o,'n-kitchen', 'Kitchen'),  '#FFF3E0','#FFB74D','#E65100',80,40,false,0));
-    html+=makeEl(o,'malta-n-entrance',500,400,makeZone(o,'n-entrance',EL.get(o,'n-entrance','Entrance'),  '#F4F5F7','#E5E7EB','#9CA3AF',80,40,false,0));
+    html+=makeEl(o,'malta-n-entrance',500,400,makeZone(o,'n-entrance',EL.get(o,'n-entrance','Entrance'),  '#E8F5E9','#81C784','#2E7D32',80,40,false,0));
     html+=makeEl(o,'malta-n-bathroom',600,400,makeZone(o,'n-bathroom',EL.get(o,'n-bathroom','Bathroom'),  '#EDE7F6','#B39DDB','#512DA8',80,40,false,0));
   }
   var yPos=94;
