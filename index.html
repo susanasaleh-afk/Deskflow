@@ -347,7 +347,7 @@ const OFFICES={
     allDesks:['R1','R2','R3','R4','R5','R6','R7','R8','S1','L1','L2','L3','L4','L5','L6','L7','L8','L9','L10'],
     ceoName:'Richard'},
   Malta:{color:'#1D9E75',flag:'\ud83c\uddf2\ud83c\uddf9',layout:'malta',
-    floors:['L5','L4','Malta'],desks:88,
+    floors:['Malta'],desks:88,
     rooms:['Blue Grotto','Mdina','Comino','Filfla','Citadella'],roomCaps:{'Blue Grotto':6,Mdina:8,Comino:8,Filfla:6,Citadella:10},
     l4Rooms:['Linnea','Space Invaders','Final Fantasy','Street Fighter','Sonic','Doom','Lemmings','Zelda'],
     l4RoomCaps:{Linnea:8,'Space Invaders':6,'Final Fantasy':6,'Street Fighter':6,Sonic:6,Doom:6,Lemmings:6,Zelda:6},
@@ -606,7 +606,7 @@ const HiddenOffices={
 // ═══ STATE ═══
 let S={
   user:DB.get('user',null),office:'Marbella',view:'map',dayOffset:0,modal:null,
-  calView:'week',calWeekStart:0,calMonthOffset:0,maltaFloor:'L5',editMode:false,
+  calView:'week',calWeekStart:0,calMonthOffset:0,maltaFloor:'Malta',editMode:false,
 };
 async function setState(p){
   Object.assign(S,p);
