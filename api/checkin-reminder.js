@@ -31,10 +31,17 @@ async function slackDM(userId, text) {
 }
 
 module.exports = async function handler(req, res) {
-  // Only allow Vercel cron or internal calls
   const authHeader = req.headers.authorization;
   if (authHeader !== `Bearer ${process.env.CRON_SECRET}` && process.env.CRON_SECRET) {
     return res.status(401).json({ error: 'Unauthorized' });
+  }
+
+  // Diagnose token
+  const authTest = await fetch('https://slack.com/api/auth.test', {
+    headers: { Authorization: `Bearer ${SLACK_TOKEN}` }
+  }).then(r => r.json()).catch(e => ({ ok: false, error: e.message }));
+  if (!authTest.ok) {
+    return res.status(200).json({ token_error: authTest.error, token_prefix: SLACK_TOKEN ? SLACK_TOKEN.slice(0, 10) : 'missing' });
   }
 
   const today = new Date().toISOString().slice(0, 10);
