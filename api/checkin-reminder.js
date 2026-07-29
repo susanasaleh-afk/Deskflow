@@ -5,7 +5,7 @@ const supabase = createClient(
   process.env.SUPABASE_SERVICE_KEY
 );
 
-const SLACK_TOKEN = process.env.SLACK_BOT_TOKEN;
+const SLACK_TOKEN = process.env.SLACK_USER_TOKEN || process.env.SLACK_BOT_TOKEN;
 const APP_URL = 'https://gig-deskflow.vercel.app';
 
 let _slackUsers = null;
