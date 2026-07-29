@@ -43,6 +43,14 @@ module.exports = async function handler(req, res) {
   if (error) return res.status(500).json({ error: error.message });
   if (!bookings.length) return res.status(200).json({ sent: 0 });
 
+  // Get emails from users table
+  const userIds = [...new Set(bookings.map(b => b.user_id))];
+  const { data: users } = await supabase
+    .from('users')
+    .select('id, email')
+    .in('id', userIds);
+  const emailMap = Object.fromEntries((users || []).map(u => [u.id, u.email]));
+
   // Get existing check-ins for today
   const { data: checkins } = await supabase
     .from('checkins')
@@ -56,7 +64,9 @@ module.exports = async function handler(req, res) {
   for (const b of bookings) {
     if (checkedIn.has(`${b.user_id}|${b.office}`)) continue;
 
-    const slackId = await slackLookupByEmail(b.user_email);
+    const email = emailMap[b.user_id];
+    if (!email) continue;
+    const slackId = await slackLookupByEmail(email);
     if (!slackId) continue;
 
     const url = `${APP_URL}/?checkin=${encodeURIComponent(b.office)}`;
