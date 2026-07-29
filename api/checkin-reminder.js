@@ -13,7 +13,8 @@ async function slackLookupByEmail(email) {
     headers: { Authorization: `Bearer ${SLACK_TOKEN}` }
   });
   const d = await r.json();
-  return d.ok ? d.user.id : null;
+  if (!d.ok) return `error:${d.error}`;
+  return d.user.id;
 }
 
 async function slackDM(userId, text) {
@@ -67,7 +68,7 @@ module.exports = async function handler(req, res) {
     const email = emailMap[b.user_id];
     const slackId = email ? await slackLookupByEmail(email) : null;
     debug.push({ user: b.user_name, email: email||'missing', alreadyIn, slackId: slackId||'not found' });
-    if (alreadyIn || !email || !slackId) continue;
+    if (alreadyIn || !email || !slackId || slackId.startsWith('error:')) continue;
 
     const url = `${APP_URL}/?checkin=${encodeURIComponent(b.office)}`;
     await slackDM(slackId, `👋 Don't forget to check in to your desk at *${b.office}* today!\n<${url}|Check in now →>`);
