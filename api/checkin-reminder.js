@@ -61,18 +61,18 @@ module.exports = async function handler(req, res) {
 
   // Send DM to each person who hasn't checked in yet
   let sent = 0;
+  const debug = [];
   for (const b of bookings) {
-    if (checkedIn.has(`${b.user_id}|${b.office}`)) continue;
-
+    const alreadyIn = checkedIn.has(`${b.user_id}|${b.office}`);
     const email = emailMap[b.user_id];
-    if (!email) continue;
-    const slackId = await slackLookupByEmail(email);
-    if (!slackId) continue;
+    const slackId = email ? await slackLookupByEmail(email) : null;
+    debug.push({ user: b.user_name, email: email||'missing', alreadyIn, slackId: slackId||'not found' });
+    if (alreadyIn || !email || !slackId) continue;
 
     const url = `${APP_URL}/?checkin=${encodeURIComponent(b.office)}`;
     await slackDM(slackId, `👋 Don't forget to check in to your desk at *${b.office}* today!\n<${url}|Check in now →>`);
     sent++;
   }
 
-  return res.status(200).json({ sent, total: bookings.length });
+  return res.status(200).json({ sent, total: bookings.length, debug });
 };
