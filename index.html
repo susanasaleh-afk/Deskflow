@@ -1213,8 +1213,8 @@ function renderMalta(cfg,D){
     html+=makeEl(o,'malta-room-'+floor+'-'+i,4+(i*132),46,makeZone(o,'room-'+floor+'-'+i,EL.get(o,'room-'+floor+'-'+i,r),'#FFF8E7','#E8C97A','#8A6A00',124,34,false,0));
   });
   if(floor==='Malta'){
-    html+=makeEl(o,'malta-n-allhands',1339,201,makeZone(o,'n-allhands',EL.get(o,'n-allhands','All Hands'),'#EAF3DE','#97C459','#3B6D11',160,50,true,0));
-    html+=makeEl(o,'malta-n-kitchen', 1291,99, makeZone(o,'n-kitchen', EL.get(o,'n-kitchen', 'Kitchen'),  '#FFF3E0','#FFB74D','#E65100',80,40,false,0));
+    html+=makeEl(o,'malta-n-allhands',1330,150,makeZone(o,'n-allhands',EL.get(o,'n-allhands','All Hands'),'#EAF3DE','#97C459','#3B6D11',160,50,true,0));
+    html+=makeEl(o,'malta-n-kitchen', 1170,99, makeZone(o,'n-kitchen', EL.get(o,'n-kitchen', 'Kitchen'),  '#FFF3E0','#FFB74D','#E65100',80,40,false,0));
     html+=makeEl(o,'malta-n-entrance',  4,490,makeZone(o,'n-entrance',EL.get(o,'n-entrance','Entrance'),  '#E8F5E9','#81C784','#2E7D32',80,40,false,0));
     html+=makeEl(o,'malta-n-bathroom',  0,266,makeZone(o,'n-bathroom',EL.get(o,'n-bathroom','Bathroom'),  '#EDE7F6','#B39DDB','#512DA8',80,40,false,0));
   }
@@ -2139,7 +2139,7 @@ function bindAll(){
 
 // ═══ START ═══
 // Clear version cache on load
-if(DB.get('appver','')!=='v66'){
+if(DB.get('appver','')!=='v67'){
   // Marbella
   DB.set('mp_Marbella',{malaga:{x:470,y:0},linnea:{x:357,y:1},kitchen:{x:278,y:1},allhands:{x:0,y:177},lcluster:{x:435,y:32},ceo:{x:561,y:215},rcluster:{x:272,y:35},boardroom:{x:63,y:192},enter:{x:213,y:14}});
   DB.set('rot_Marbella_boardroom',90);DB.set('rot_Marbella_allhands',90);DB.set('rot_Marbella_enter',90);
@@ -2268,7 +2268,7 @@ if(DB.get('appver','')!=='v66'){
     DB.set('el_Malta_room-L5-4','Citadella');
   var _def={
     'malta-floors':{x:4,y:4},
-    'malta-rest':{x:1261,y:150},
+    'malta-rest':{x:1130,y:150},
     'malta-room-0':{x:218,y:21},'malta-room-1':{x:254,y:375},'malta-room-2':{x:252,y:423},'malta-room-3':{x:252,y:470},'malta-room-4':{x:403,y:474},'malta-room-5':{x:1054,y:394},'malta-room-6':{x:930,y:393},'malta-room-7':{x:589,y:462},
     'malta-room-L5-0':{x:200,y:100},'malta-room-L5-1':{x:306,y:384},'malta-room-L5-2':{x:306,y:430},'malta-room-L5-3':{x:306,y:476},'malta-room-L5-4':{x:456,y:476},
     'malta-room-L4-0':{x:720,y:0},'malta-room-L4-1':{x:462,y:449},'malta-room-L4-2':{x:462,y:493},'malta-room-L4-3':{x:604,y:449},'malta-room-L4-4':{x:604,y:493},'malta-room-L4-5':{x:762,y:470},'malta-room-L4-6':{x:962,y:462},'malta-room-L4-7':{x:1092,y:462},
@@ -2309,12 +2309,12 @@ if(DB.get('appver','')!=='v66'){
     'malta-d-N40':{x:632,y:10},'malta-d-N41':{x:690,y:10},'malta-d-N42':{x:632,y:62},'malta-d-N43':{x:690,y:62},
     'malta-d-N44':{x:816,y:10},'malta-d-N45':{x:870,y:10},'malta-d-N46':{x:816,y:62},'malta-d-N47':{x:870,y:62},
     'malta-d-N48':{x:924,y:156},'malta-d-N49':{x:980,y:156},'malta-d-N50':{x:924,y:210},'malta-d-N51':{x:980,y:210},'malta-d-N52':{x:800,y:210},'malta-d-N53':{x:852,y:210},
-    'malta-n-bathroom':{x:0,y:266},'malta-n-entrance':{x:4,y:490},'malta-n-kitchen':{x:1291,y:99},'malta-n-allhands':{x:1339,y:201}
+    'malta-n-bathroom':{x:0,y:266},'malta-n-entrance':{x:4,y:490},'malta-n-kitchen':{x:1170,y:99},'malta-n-allhands':{x:1330,y:150}
   };
-  var _cur=DB.get('mp_Malta',{});Object.keys(_def).forEach(function(k){if(!_cur[k])_cur[k]=_def[k];});_cur['malta-rest']={x:1261,y:150};DB.set('mp_Malta',_cur);
+  var _cur=DB.get('mp_Malta',{});Object.keys(_def).forEach(function(k){if(!_cur[k])_cur[k]=_def[k];});_cur['malta-rest']={x:1130,y:150};_cur['malta-n-kitchen']={x:1170,y:99};_cur['malta-n-allhands']={x:1330,y:150};DB.set('mp_Malta',_cur);
   DB.set('el_Malta_desk_N1','Boban');DB.set('el_Malta_desk_N12','Claudio');
   var hf=DB.get('hidden_floors',[]);if(!hf.includes('Malta|L4'))hf.push('Malta|L4');DB.set('hidden_floors',hf);
-  DB.set('appver','v66');
+  DB.set('appver','v67');
 }
 
 // ═══ OFFICE PICKER ═══
