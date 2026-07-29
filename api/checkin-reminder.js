@@ -8,13 +8,18 @@ const supabase = createClient(
 const SLACK_TOKEN = process.env.SLACK_BOT_TOKEN;
 const APP_URL = 'https://gig-deskflow.vercel.app';
 
+let _slackUsers = null;
 async function slackLookupByEmail(email) {
-  const r = await fetch(`https://slack.com/api/users.lookupByEmail?email=${encodeURIComponent(email)}`, {
-    headers: { Authorization: `Bearer ${SLACK_TOKEN}` }
-  });
-  const d = await r.json();
-  if (!d.ok) return `error:${d.error}`;
-  return d.user.id;
+  if (!_slackUsers) {
+    const r = await fetch('https://slack.com/api/users.list?limit=200', {
+      headers: { Authorization: `Bearer ${SLACK_TOKEN}` }
+    });
+    const d = await r.json();
+    if (!d.ok) return `error:${d.error}`;
+    _slackUsers = d.members;
+  }
+  const u = _slackUsers.find(m => m.profile && m.profile.email === email);
+  return u ? u.id : null;
 }
 
 async function slackDM(userId, text) {
