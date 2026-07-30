@@ -1163,10 +1163,9 @@ function renderMarbella(cfg,D,date){
 // ─── MALTA MAP ───
 function renderMalta(cfg,D){
   var visibleFloors=(cfg.floors||[]).filter(function(f){return!HiddenFloors.isHidden(S.office,f);});
-  var maltaCfg=OFFICES[S.office]||cfg;
-  var floor=visibleFloors.includes(S.maltaFloor)?S.maltaFloor:(visibleFloors[0]||S.maltaFloor);
+  var floor=visibleFloors.includes(S.maltaFloor)?S.maltaFloor:(visibleFloors[0]||'Malta');
   if(floor!==S.maltaFloor)setTimeout(function(){setState({maltaFloor:floor});},0);
-  var groups=floor==='L5'?maltaCfg.l5Groups:floor==='Malta'?maltaCfg.maltaGroups:maltaCfg.l4Groups,o=S.office;
+  var groups=(floor==='L5'?OFFICES.Malta.l5Groups:floor==='Malta'?OFFICES.Malta.maltaGroups:OFFICES.Malta.l4Groups)||[],o=S.office;
   var DM=function(id,color,grpShort){
     var custom=EL.get(o,'desk_'+id,'');
     var displayName=custom||(grpShort&&floor==='Malta'?grpShort:id);
