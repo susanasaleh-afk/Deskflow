@@ -833,7 +833,7 @@ function bindLogin(){
         await Promise.all([FF.load(),RF.load(),CI.load()]);
         await BK.loadOD(user.office||'Marbella',ds(0));
         await BK.loadUser(user.id);
-        try{var od=await api('offices');od.forEach(function(o){OFFICES[o.id]=Object.assign({},OFFICES[o.id]||{},o.config||{},{color:o.color,flag:o.flag,layout:o.layout});});}catch(e){}
+        try{var od=await api('offices');od.forEach(function(o){var base=OFFICES[o.id]||{};OFFICES[o.id]=Object.assign({},o.config||{},base,{color:o.color,flag:o.flag,layout:o.layout});});}catch(e){}
         if(!user.office){
           await showOfficePicker(user);
         } else {
