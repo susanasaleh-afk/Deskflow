@@ -614,7 +614,7 @@ const HiddenFloors={
 // ═══ STATE ═══
 let S={
   user:DB.get('user',null),office:'Marbella',view:'map',dayOffset:0,modal:null,
-  calView:'week',calWeekStart:0,calMonthOffset:0,maltaFloor:DB.get('maltaFloor','Malta'),editMode:false,
+  calView:'week',calWeekStart:0,calMonthOffset:0,maltaFloor:'Malta',editMode:false,
 };
 async function setState(p){
   Object.assign(S,p);
@@ -1164,7 +1164,7 @@ function renderMarbella(cfg,D,date){
 function renderMalta(cfg,D){
   var visibleFloors=(cfg.floors||[]).filter(function(f){return!HiddenFloors.isHidden(S.office,f);});
   var floor=visibleFloors.includes(S.maltaFloor)?S.maltaFloor:(visibleFloors[0]||'Malta');
-  if(floor!==S.maltaFloor)setTimeout(function(){setState({maltaFloor:floor});},0);
+  if(floor!==S.maltaFloor)S.maltaFloor=floor;
   var groups=(floor==='L5'?OFFICES.Malta.l5Groups:floor==='Malta'?OFFICES.Malta.maltaGroups:OFFICES.Malta.l4Groups)||[],o=S.office;
   var DM=function(id,color,grpShort){
     var custom=EL.get(o,'desk_'+id,'');
