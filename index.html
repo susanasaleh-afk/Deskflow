@@ -1140,7 +1140,6 @@ function renderMalta(cfg,D){
   var floor=visibleFloors.includes(S.maltaFloor)?S.maltaFloor:(visibleFloors[0]||'Malta');
   if(floor!==S.maltaFloor)S.maltaFloor=floor;
   var groups=OFFICES.Malta.maltaGroups||[],o=S.office;
-  console.log('renderMalta DEBUG',{floor:floor,groups:groups.length,N1pos:MP.get(o)['malta-d-N1'],maltaGroups:!!OFFICES.Malta.maltaGroups});
   var DM=function(id,color,grpShort){
     var custom=EL.get(o,'desk_'+id,'');
     var displayName=custom||(grpShort&&floor==='Malta'?grpShort:id);
@@ -2290,6 +2289,7 @@ if(DB.get('appver','')!=='v68'){
   DB.set('maltaFloor','Malta');
   var hf=DB.get('hidden_floors',[]);['Malta|L4','Malta|L5'].forEach(function(k){if(!hf.includes(k))hf.push(k);});DB.set('hidden_floors',hf);
   DB.set('appver','v68');
+  location.reload(true);
 }
 
 // ═══ OFFICE PICKER ═══
