@@ -2112,7 +2112,7 @@ function bindAll(){
 
 // ═══ START ═══
 // Clear version cache on load
-if(DB.get('appver','')!=='v68'){
+if(DB.get('appver','')!=='v69'){
   // Marbella
   DB.set('mp_Marbella',{malaga:{x:470,y:0},linnea:{x:357,y:1},kitchen:{x:278,y:1},allhands:{x:0,y:177},lcluster:{x:435,y:32},ceo:{x:561,y:215},rcluster:{x:272,y:35},boardroom:{x:63,y:192},enter:{x:213,y:14}});
   DB.set('rot_Marbella_boardroom',90);DB.set('rot_Marbella_allhands',90);DB.set('rot_Marbella_enter',90);
@@ -2288,7 +2288,7 @@ if(DB.get('appver','')!=='v68'){
   DB.set('el_Malta_desk_N1','Boban');DB.set('el_Malta_desk_N12','Claudio');
   DB.set('maltaFloor','Malta');
   var hf=DB.get('hidden_floors',[]);['Malta|L4','Malta|L5'].forEach(function(k){if(!hf.includes(k))hf.push(k);});DB.set('hidden_floors',hf);
-  DB.set('appver','v68');
+  DB.set('appver','v69');
   location.reload(true);
 }
 
