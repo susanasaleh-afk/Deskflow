@@ -1,5 +1,5 @@
 const { createClient } = require('@supabase/supabase-js');
-const { verifyToken, isAdmin } = require('./auth');
+const { verifyToken, isAdmin, isSuperAdmin } = require('./auth');
 
 const supabase = createClient(
   process.env.SUPABASE_URL,
@@ -39,8 +39,17 @@ module.exports = async function handler(req, res) {
     }
 
     if (req.method === 'POST') {
-      const { office, date, type, resource_id, room_slot, room_title } = req.body;
+      const { office, date, type, resource_id, room_slot, room_title, on_behalf_of_id, on_behalf_of_name } = req.body;
       if (!office || !date || !type || !resource_id) return res.status(400).json({ error: 'Missing required fields' });
+
+      let bookingUserId = caller.id;
+      let bookingUserName = caller.name;
+      if (on_behalf_of_id && on_behalf_of_name) {
+        const callerIsSuperAdmin = await isSuperAdmin(supabase, caller.id);
+        if (!callerIsSuperAdmin) return res.status(403).json({ error: 'Forbidden: superadmin required to book on behalf of others' });
+        bookingUserId = on_behalf_of_id;
+        bookingUserName = on_behalf_of_name;
+      }
 
       let conflictQuery = supabase.from('bookings').select('id')
         .eq('office', office).eq('date', date).eq('resource_id', resource_id).eq('type', type);
@@ -53,9 +62,9 @@ module.exports = async function handler(req, res) {
         id, office, date, type, resource_id,
         room_slot: room_slot || null,
         room_title: room_title || null,
-        user_id: caller.id,
-        user_name: caller.name,
-        user_initials: caller.name.split(' ').map(w => w[0] || '').slice(0, 2).join('').toUpperCase(),
+        user_id: bookingUserId,
+        user_name: bookingUserName,
+        user_initials: bookingUserName.split(' ').map(w => w[0] || '').slice(0, 2).join('').toUpperCase(),
       });
       if (error) throw error;
       return res.status(201).json(data);
