@@ -90,4 +90,17 @@ async function isAdmin(supabase, userId) {
   return value;
 }
 
-module.exports = { verifyToken, isAdmin };
+const _superAdminCache = new Map();
+
+async function isSuperAdmin(supabase, userId) {
+  const cached = _superAdminCache.get(userId);
+  if (cached && cached.exp > Date.now()) return cached.value;
+
+  const { data } = await supabase.from('users').select('is_superadmin').eq('id', userId).single();
+  const value = data?.is_superadmin === true;
+
+  _superAdminCache.set(userId, { value, exp: Date.now() + 5 * 60 * 1000 });
+  return value;
+}
+
+module.exports = { verifyToken, isAdmin, isSuperAdmin };

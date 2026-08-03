@@ -504,18 +504,11 @@ const BK={
   isBooked(office,date,type,rid,slot=null){return this.forOD(office,date).find(b=>b.type===type&&b.resourceId===rid&&(slot===null||b.roomSlot===slot))},
   async add(b){
     const id='b'+Date.now()+Math.random().toString(36).slice(2);
-    await api('bookings','POST',{
-      id,
-      office:b.office,
-      date:b.date,
-      type:b.type,
-      resource_id:b.resourceId,
-      room_slot:b.roomSlot||null,
-      room_title:b.roomTitle||null
-      // user_id, user_name come from verified token in backend
-    });
+    var body={id,office:b.office,date:b.date,type:b.type,resource_id:b.resourceId,room_slot:b.roomSlot||null,room_title:b.roomTitle||null};
+    if(b.onBehalf){body.on_behalf_of_id=b.onBehalf.userId;body.on_behalf_of_name=b.onBehalf.userName;}
+    await api('bookings','POST',body);
     await this.loadOD(b.office,b.date);
-    await this.loadUser(b.userId);
+    await this.loadUser(b.onBehalf?b.onBehalf.userId:(b.userId||S.user.id));
   },
   async remove(id){
     const b=Object.values(this._d).flat().find(x=>x.id===id);
@@ -1595,7 +1588,31 @@ function renderAdmin(){
         }).join('')+
         (permRF.length>0?'<div style="font-size:11px;font-weight:600;margin:10px 0 6px;color:var(--text3);text-transform:uppercase">Added via this panel</div>'+
           permRF.map(function(r){var dn=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];var days=Array.isArray(r.days)?r.days:[];return'<div style="display:flex;align-items:center;gap:8px;padding:6px 10px;background:var(--green-bg);border:1px solid var(--green-border);border-radius:var(--r);margin-bottom:4px"><span style="flex:1;font-size:12px;color:var(--green-dark)"><strong>'+r.person+'</strong> &middot; '+(r.desk_id||r.deskId)+' &middot; '+r.office+' &middot; '+days.map(function(d){return dn[d]}).join(',')+'</span><button class="cancel-btn rfRm" data-office="'+r.office+'" data-desk="'+(r.desk_id||r.deskId)+'" style="padding:4px 10px;font-size:11px">Remove</button></div>'}).join(''):'')+'</div>'+
-    '</div>';
+    '</div>'+
+    // Book on behalf of another user
+    (function(){
+      var obNext14=Array.from({length:14},function(_,i){return{label:i===0?'Today':i===1?'Tomorrow':dispDate(i),date:ds(i)}});
+      return '<div class="card"><div class="card-header"><div class="card-title">📅 Book on behalf of someone</div></div>'+
+        '<p style="font-size:13px;color:var(--text2);margin-bottom:14px">Book a desk for another user on a specific date.</p>'+
+        '<div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr auto;gap:8px;align-items:end">'+
+          '<div><div style="font-size:10px;color:var(--text3);text-transform:uppercase;margin-bottom:3px">User</div>'+
+            '<select id="obUser" style="width:100%;padding:8px;border:1px solid var(--border);border-radius:var(--r);font-size:12px;font-family:inherit;background:var(--bg)">'+
+              DEMO_USERS.map(function(u){return'<option value="'+u.id+'|'+u.name+'">'+u.name+'</option>'}).join('')+
+            '</select></div>'+
+          '<div><div style="font-size:10px;color:var(--text3);text-transform:uppercase;margin-bottom:3px">Office</div>'+
+            '<select id="obOffice" style="width:100%;padding:8px;border:1px solid var(--border);border-radius:var(--r);font-size:12px;font-family:inherit;background:var(--bg)">'+
+              Object.keys(OFFICES).map(function(o){return'<option'+(o===S.office?' selected':'')+'>'+o+'</option>'}).join('')+
+            '</select></div>'+
+          '<div><div style="font-size:10px;color:var(--text3);text-transform:uppercase;margin-bottom:3px">Desk ID</div>'+
+            '<input id="obDesk" type="text" placeholder="e.g. H5" style="width:100%;padding:8px;border:1px solid var(--border);border-radius:var(--r);font-size:12px;font-family:inherit;background:var(--bg)"/></div>'+
+          '<div><div style="font-size:10px;color:var(--text3);text-transform:uppercase;margin-bottom:3px">Date</div>'+
+            '<select id="obDate" style="width:100%;padding:8px;border:1px solid var(--border);border-radius:var(--r);font-size:12px;font-family:inherit;background:var(--bg)">'+
+              obNext14.map(function(d){return'<option value="'+d.date+'">'+d.label+'</option>'}).join('')+
+            '</select></div>'+
+          '<button id="obBook" class="btn-primary" style="padding:8px 14px">Book</button>'+
+        '</div>'+
+      '</div>';
+    }());
   }():'')+
   // No-show report
   (function(){
@@ -1613,22 +1630,32 @@ function renderAdmin(){
         (cis.length>0?'<div style="font-size:12px;font-weight:600;margin-bottom:6px;color:var(--green-dark);margin-top:10px">Checked in:</div>'+cis.map(function(c){return'<div style="padding:5px 10px;background:var(--green-bg);border:1px solid var(--green-border);border-radius:var(--r);margin-bottom:3px;font-size:12px;color:var(--green-dark)"><strong>'+c.userName+'</strong> &middot; Desk '+deskLabel(c.deskId)+' &middot; '+c.at+'</div>'}).join(''):'')
       )+'</div>';
   })();
-  // Move booking panel
+  // Manage bookings panel (cancel + move)
   var todayDeskBK=BK.forOD(S.office,ds(S.dayOffset)).filter(function(b){return b.type==='desk'});
   var html_mv='<div class="card">'+
-    '<div class="card-header"><div class="card-title">↔️ Move booking</div></div>'+
-    '<p style="font-size:13px;color:var(--text2);margin-bottom:14px">Move someone\'s desk booking to a different desk.</p>'+
+    '<div class="card-header"><div class="card-title">📋 Manage bookings &mdash; '+S.office+' &mdash; '+dispDate(S.dayOffset)+'</div></div>'+
     (todayDeskBK.length===0?'<div style="font-size:13px;color:var(--text3)">No desk bookings for '+S.office+' on this day.</div>':
-      '<div style="display:grid;grid-template-columns:1fr 1fr auto;gap:8px;align-items:end">'+
-        '<div><div style="font-size:10px;color:var(--text3);text-transform:uppercase;margin-bottom:3px">Current booking</div>'+
-          '<select id="mvBk" style="width:100%;padding:8px;border:1px solid var(--border);border-radius:var(--r);font-size:12px;font-family:inherit;background:var(--bg)">'+
-            todayDeskBK.map(function(b){return'<option value="'+b.id+'">'+b.userName+' &mdash; Desk '+deskLabel(b.resourceId)+'</option>'}).join('')+
-          '</select></div>'+
-        '<div><div style="font-size:10px;color:var(--text3);text-transform:uppercase;margin-bottom:3px">Move to desk</div>'+
-          '<input id="mvDesk" type="text" placeholder="e.g. H5" style="width:100%;padding:8px;border:1px solid var(--border);border-radius:var(--r);font-size:12px;font-family:inherit;background:var(--bg)"/>'+
-        '</div>'+
-        '<button id="mvBtn" class="btn-primary" style="padding:8px 14px">Move</button>'+
-      '</div>')+
+      '<table style="width:100%;border-collapse:collapse;font-size:12px">'+
+        '<thead><tr style="background:var(--bg2)">'+
+          '<th style="padding:7px 10px;text-align:left;border-bottom:1px solid var(--border);font-weight:600">Person</th>'+
+          '<th style="padding:7px 10px;text-align:left;border-bottom:1px solid var(--border);font-weight:600">Desk</th>'+
+          '<th style="padding:7px 10px;text-align:left;border-bottom:1px solid var(--border);font-weight:600">Move to</th>'+
+          '<th style="padding:7px 10px;border-bottom:1px solid var(--border)"></th>'+
+        '</tr></thead>'+
+        '<tbody>'+
+          todayDeskBK.map(function(b){
+            return '<tr style="border-bottom:1px solid var(--border)" data-bid="'+b.id+'">'+
+              '<td style="padding:7px 10px"><strong>'+b.userName+'</strong></td>'+
+              '<td style="padding:7px 10px">'+deskLabel(b.resourceId)+'</td>'+
+              '<td style="padding:7px 10px"><input class="mv-desk-in" data-bid="'+b.id+'" type="text" placeholder="e.g. H5" style="width:80px;padding:4px 6px;border:1px solid var(--border);border-radius:var(--r);font-size:11px;font-family:inherit;background:var(--bg)"/></td>'+
+              '<td style="padding:7px 10px;white-space:nowrap;display:flex;gap:6px">'+
+                '<button class="mv-btn btn-secondary" data-bid="'+b.id+'" style="padding:4px 10px;font-size:11px">Move</button>'+
+                '<button class="bk-cancel-btn cancel-btn" data-bid="'+b.id+'" style="padding:4px 10px;font-size:11px">Cancel</button>'+
+              '</td>'+
+            '</tr>';
+          }).join('')+
+        '</tbody>'+
+      '</table>')+
   '</div>';
   var html_um='<div class="card" style="margin-top:16px">'+
     '<div class="card-header" style="cursor:pointer;display:flex;justify-content:space-between;align-items:center" id="um-toggle">'+
@@ -2087,11 +2114,32 @@ function bindAll(){
     RF.remove(btn.dataset.office,btn.dataset.desk).then(()=>{toast('Removed');render();});
   })});
   // Fixed desk management
-  document.getElementById('mvBtn')?.addEventListener('click',function(){
-    var id=document.getElementById('mvBk')?.value;
-    var newDesk=document.getElementById('mvDesk')?.value?.trim().toUpperCase();
-    if(!id||!newDesk){toast('Select a booking and enter a desk','error');return;}
-    BK.move(id,newDesk).then(function(){toast('Booking moved to desk '+newDesk+' ✓');render();}).catch(function(e){toast(e.message||'Error','error');});
+  document.querySelectorAll('.mv-btn').forEach(function(btn){btn.addEventListener('click',function(){
+    var id=btn.dataset.bid;
+    var input=document.querySelector('.mv-desk-in[data-bid="'+id+'"]');
+    var newDesk=input?.value?.trim().toUpperCase();
+    if(!id||!newDesk){toast('Enter a desk to move to','error');return;}
+    btn.disabled=true;btn.textContent='Moving...';
+    BK.move(id,newDesk).then(function(){toast('Booking moved to desk '+newDesk+' ✓');render();}).catch(function(e){toast(e.message||'Error','error');btn.disabled=false;btn.textContent='Move';});
+  })});
+  document.querySelectorAll('.bk-cancel-btn').forEach(function(btn){btn.addEventListener('click',function(){
+    var id=btn.dataset.bid;
+    btn.disabled=true;btn.textContent='Cancelling...';
+    BK.remove(id).then(function(){toast('Booking cancelled ✓');render();}).catch(function(e){toast(e.message||'Error','error');btn.disabled=false;btn.textContent='Cancel';});
+  })});
+  document.getElementById('obBook')?.addEventListener('click',async function(){
+    var btn=document.getElementById('obBook');
+    var userVal=document.getElementById('obUser')?.value;
+    var office=document.getElementById('obOffice')?.value;
+    var deskId=document.getElementById('obDesk')?.value?.trim().toUpperCase();
+    var date=document.getElementById('obDate')?.value;
+    if(!userVal||!office||!deskId||!date){toast('Fill all fields','error');return;}
+    var parts=userVal.split('|'),userId=parts[0],userName=parts.slice(1).join('|');
+    btn.disabled=true;btn.textContent='Booking...';
+    try{
+      await BK.add({office,date,type:'desk',resourceId:deskId,onBehalf:{userId,userName}});
+      toast('Desk '+deskId+' booked for '+userName+' ✓');render();
+    }catch(e){toast(e.message||'Error','error');btn.disabled=false;btn.textContent='Book';}
   });
   document.getElementById('fdAdd')?.addEventListener('click',function(){
     var office=document.getElementById('fdOff')?.value;
