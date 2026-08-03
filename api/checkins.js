@@ -35,7 +35,7 @@ module.exports = async function handler(req, res) {
         office, desk_id, date,
         user_id: caller.id,
         user_name: caller.name,
-        at: new Date().toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })
+        at: new Date().toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', timeZone: 'Europe/Madrid' })
       }, { onConflict: 'office,desk_id,date,user_id' });
       if (error) throw error;
       return res.status(200).json(data);
