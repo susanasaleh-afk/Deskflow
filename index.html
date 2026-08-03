@@ -2163,7 +2163,7 @@ function bindAll(){
 
 // ═══ START ═══
 // Clear version cache on load
-if(DB.get('appver','')!=='v69'){
+if(DB.get('appver','')!=='v70'){
   // Marbella
   DB.set('mp_Marbella',{malaga:{x:470,y:0},linnea:{x:357,y:1},kitchen:{x:278,y:1},allhands:{x:0,y:177},lcluster:{x:435,y:32},ceo:{x:561,y:215},rcluster:{x:272,y:35},boardroom:{x:63,y:192},enter:{x:213,y:14}});
   DB.set('rot_Marbella_boardroom',90);DB.set('rot_Marbella_allhands',90);DB.set('rot_Marbella_enter',90);
@@ -2177,9 +2177,9 @@ if(DB.get('appver','')!=='v69'){
   DB.set('mp_Madrid',{'mad-allhands':{x:5,y:77},'mad-os-lbl':{x:0,y:132},'mad-pb-lbl':{x:487,y:158},'mad-H1':{x:24,y:154},'mad-H2':{x:70,y:154},'mad-H3':{x:47,y:200},'mad-H4':{x:161,y:148},'mad-H6':{x:207,y:148},'mad-H5':{x:184,y:194},'mad-H7':{x:306,y:154},'mad-H8':{x:352,y:154},'mad-H9':{x:329,y:200},'mad-R1':{x:66,y:254},'mad-R2':{x:112,y:254},'mad-R3':{x:158,y:254},'mad-R4':{x:66,y:300},'mad-R5':{x:112,y:300},'mad-R6':{x:158,y:300},'mad-R7':{x:254,y:254},'mad-R8':{x:300,y:254},'mad-R9':{x:346,y:254},'mad-R10':{x:254,y:300},'mad-R11':{x:300,y:300},'mad-R12':{x:346,y:300},'mad-H11':{x:192,y:400},'mad-H12':{x:67,y:359},'mad-H10':{x:215,y:356},'mad-R13':{x:386,y:400},'mad-R14':{x:46,y:400},'mad-R15':{x:92,y:400},'mad-R16':{x:340,y:400},'mad-R17':{x:237,y:400},'mad-R18':{x:362,y:356},'mad-PB1':{x:505,y:196},'mad-PB2':{x:505,y:242},'mad-PB3':{x:505,y:288},'mad-PB4':{x:505,y:334}});
   DB.set('el_Madrid_desk_R1','10');DB.set('el_Madrid_desk_R2','11');DB.set('el_Madrid_desk_R3','12');DB.set('el_Madrid_desk_R4','13');DB.set('el_Madrid_desk_R5','14');DB.set('el_Madrid_desk_R6','15');
   DB.set('el_Madrid_desk_R7','16');DB.set('el_Madrid_desk_R8','17');DB.set('el_Madrid_desk_R9','18');DB.set('el_Madrid_desk_R10','19');DB.set('el_Madrid_desk_R11','20');DB.set('el_Madrid_desk_R12','21');
-  DB.set('el_Madrid_desk_R13','29');DB.set('el_Madrid_desk_R14','22');DB.set('el_Madrid_desk_R15','23');DB.set('el_Madrid_desk_R16','28');DB.set('el_Madrid_desk_R17','26');DB.set('el_Madrid_desk_R18','30');
+  DB.set('el_Madrid_desk_R13','29');DB.set('el_Madrid_desk_R14','People');DB.set('el_Madrid_desk_R15','People');DB.set('el_Madrid_desk_R16','28');DB.set('el_Madrid_desk_R17','26');DB.set('el_Madrid_desk_R18','30');
   DB.set('el_Madrid_desk_H1','1');DB.set('el_Madrid_desk_H2','2');DB.set('el_Madrid_desk_H3','3');DB.set('el_Madrid_desk_H4','4');DB.set('el_Madrid_desk_H5','5');DB.set('el_Madrid_desk_H6','6');
-  DB.set('el_Madrid_desk_H7','7');DB.set('el_Madrid_desk_H8','8');DB.set('el_Madrid_desk_H9','9');DB.set('el_Madrid_desk_H10','27');DB.set('el_Madrid_desk_H11','25');DB.set('el_Madrid_desk_H12','24');
+  DB.set('el_Madrid_desk_H7','7');DB.set('el_Madrid_desk_H8','8');DB.set('el_Madrid_desk_H9','9');DB.set('el_Madrid_desk_H10','27');DB.set('el_Madrid_desk_H11','25');DB.set('el_Madrid_desk_H12','People');
   DB.set('el_Madrid_desk_PB1','RETIRO');DB.set('el_Madrid_desk_PB2','G.VÍA');DB.set('el_Madrid_desk_PB3','CIBLES');DB.set('el_Madrid_desk_PB4','SOL');
   DB.set('el_Madrid_boardroom','BOARDROOM');DB.set('el_Madrid_mr1','CASTELLANA');DB.set('el_Madrid_mr2','PLAZA MAYOR');DB.set('el_Madrid_mr3','LINNEA');
   // Malta
@@ -2339,7 +2339,7 @@ if(DB.get('appver','')!=='v69'){
   DB.set('el_Malta_desk_N1','Boban');DB.set('el_Malta_desk_N12','Claudio');
   DB.set('maltaFloor','Malta');
   var hf=DB.get('hidden_floors',[]);['Malta|L4','Malta|L5'].forEach(function(k){if(!hf.includes(k))hf.push(k);});DB.set('hidden_floors',hf);
-  DB.set('appver','v69');
+  DB.set('appver','v70');
   location.reload(true);
 }
 
