@@ -1593,12 +1593,12 @@ function renderAdmin(){
     (function(){
       var obNext14=Array.from({length:14},function(_,i){return{label:i===0?'Today':i===1?'Tomorrow':dispDate(i),date:ds(i)}});
       return '<div class="card"><div class="card-header"><div class="card-title">📅 Book on behalf of someone</div></div>'+
-        '<p style="font-size:13px;color:var(--text2);margin-bottom:14px">Book a desk for another user on a specific date.</p>'+
+        '<p style="font-size:13px;color:var(--text2);margin-bottom:14px">Book a desk for a registered user or type any name (e.g. exec team visiting).</p>'+
         '<div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr auto;gap:8px;align-items:end">'+
-          '<div><div style="font-size:10px;color:var(--text3);text-transform:uppercase;margin-bottom:3px">User</div>'+
-            '<select id="obUser" style="width:100%;padding:8px;border:1px solid var(--border);border-radius:var(--r);font-size:12px;font-family:inherit;background:var(--bg)">'+
-              DEMO_USERS.map(function(u){return'<option value="'+u.id+'|'+u.name+'">'+u.name+'</option>'}).join('')+
-            '</select></div>'+
+          '<div><div style="font-size:10px;color:var(--text3);text-transform:uppercase;margin-bottom:3px">Name</div>'+
+            '<input id="obName" type="text" placeholder="Full name" list="obUserList" style="width:100%;padding:8px;border:1px solid var(--border);border-radius:var(--r);font-size:12px;font-family:inherit;background:var(--bg)"/>'+
+            '<datalist id="obUserList">'+DEMO_USERS.map(function(u){return'<option value="'+u.name+'" data-uid="'+u.id+'">';}).join('')+'</datalist>'+
+          '</div>'+
           '<div><div style="font-size:10px;color:var(--text3);text-transform:uppercase;margin-bottom:3px">Office</div>'+
             '<select id="obOffice" style="width:100%;padding:8px;border:1px solid var(--border);border-radius:var(--r);font-size:12px;font-family:inherit;background:var(--bg)">'+
               Object.keys(OFFICES).map(function(o){return'<option'+(o===S.office?' selected':'')+'>'+o+'</option>'}).join('')+
@@ -2129,12 +2129,13 @@ function bindAll(){
   })});
   document.getElementById('obBook')?.addEventListener('click',async function(){
     var btn=document.getElementById('obBook');
-    var userVal=document.getElementById('obUser')?.value;
+    var userName=(document.getElementById('obName')?.value||'').trim();
     var office=document.getElementById('obOffice')?.value;
     var deskId=document.getElementById('obDesk')?.value?.trim().toUpperCase();
     var date=document.getElementById('obDate')?.value;
-    if(!userVal||!office||!deskId||!date){toast('Fill all fields','error');return;}
-    var parts=userVal.split('|'),userId=parts[0],userName=parts.slice(1).join('|');
+    if(!userName||!office||!deskId||!date){toast('Fill all fields','error');return;}
+    var matched=DEMO_USERS.find(function(u){return u.name.toLowerCase()===userName.toLowerCase();});
+    var userId=matched?matched.id:'guest_'+userName.toLowerCase().replace(/\s+/g,'_');
     btn.disabled=true;btn.textContent='Booking...';
     try{
       await BK.add({office,date,type:'desk',resourceId:deskId,onBehalf:{userId,userName}});
