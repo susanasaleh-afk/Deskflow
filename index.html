@@ -1219,6 +1219,8 @@ function renderMadrid(cfg,D){
     }
     var el=D(id);
     if(custom) el=el.replace('>'+id+'<','>'+custom+'<').replace('>'+id+' ✓<','>'+custom+' ✓<');
+    var lbl=custom||deskLabel(id);
+    if(lbl.length>4) el=el.replace('<span>'+lbl,'<span style="font-size:7px;line-height:1.1">'+lbl);
     return el;
   };
   var o=S.office;
