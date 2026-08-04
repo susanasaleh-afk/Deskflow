@@ -2078,6 +2078,7 @@ function bindAll(){
     });
     document.getElementById('mCnf')?.addEventListener('click',function(){
       var m=S.modal,date=ds(S.dayOffset);
+      if(S.office==='Marbella'&&!AdminState.get()){var maxDate=ds(7);if(date>maxDate){toast('Bookings can only be made up to 7 days in advance','error');return;}}
       if(m.type==='desk'){var ex=BK.forOD(S.office,date).find(function(b){return b.type==='desk'&&b.userId===S.user.id});if(ex){toast('You already have a desk booked today','error');return}}
       if(m.type==='parking'){var ex=BK.forOD(S.office,date).find(function(b){return b.type==='parking'&&b.userId===S.user.id});if(ex){toast('You already have a parking spot today','error');return}}
       var btn=document.getElementById('mCnf');btn.disabled=true;btn.textContent='Booking...';
