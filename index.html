@@ -1848,6 +1848,16 @@ function renderAdmin(){
 }
 function renderModal(){
   var m=S.modal,date=ds(S.dayOffset);
+  if(m.type==='checkin'){
+    var ok=m.desk!=null;
+    return '<div class="modal-overlay" id="mOv"><div class="modal" style="max-width:320px;text-align:center;padding:36px 28px">'+
+      '<div style="font-size:52px;margin-bottom:16px">'+(ok?'✅':'🤔')+'</div>'+
+      '<div style="font-size:18px;font-weight:700;margin-bottom:8px">'+(ok?'Checked in!':'No booking found')+'</div>'+
+      '<div style="font-size:13px;color:var(--text2);margin-bottom:4px">'+(ok?m.office+' · '+deskLabel(m.desk):'You don\'t have a desk booked for today at '+m.office+'.')+'</div>'+
+      (ok?'<div style="font-size:12px;color:var(--text3);">'+new Date().toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'})+'</div>':'')+
+      '<div class="modal-actions" style="margin-top:24px"><button class="btn-primary" id="mCls">Go to floor plan</button></div>'+
+    '</div></div>';
+  }
   if(m.type==='pet'){
     var isPetOffice=['Barcelona','Toulouse','Malta'].includes(m.office);
     return '<div class="modal-overlay" id="mOv"><div class="modal" style="max-width:320px;text-align:center;padding:28px 24px">'+
@@ -2433,15 +2443,9 @@ async function initApp(){
       const _ciDate = ds(0);
       await BK.loadOD(_ciOffice, _ciDate);
       const _ciDesk = BK.forOD(_ciOffice, _ciDate).find(function(b){return b.type==='desk'&&b.userId===user.id;});
-      setState({user, office: _ciOffice});
-      if(_ciDesk){
-        await CI.add(_ciOffice, _ciDesk.resourceId, _ciDate, user.id, user.name);
-        toast('Checked in at '+_ciOffice+' — '+deskLabel(_ciDesk.resourceId)+' ✓');
-      } else {
-        toast('Welcome to '+_ciOffice+'! No desk booked for today.');
-      }
-      // Clean URL without reload
+      if(_ciDesk) await CI.add(_ciOffice, _ciDesk.resourceId, _ciDate, user.id, user.name);
       window.history.replaceState({}, '', window.location.pathname);
+      setState({user, office: _ciOffice, modal:{type:'checkin', office:_ciOffice, desk: _ciDesk?_ciDesk.resourceId:null}});
       return;
     }
 
