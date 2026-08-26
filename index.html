@@ -205,7 +205,7 @@ body{background:var(--bg);color:var(--text);min-height:100vh}
 .map-canvas{min-width:1000px;touch-action:pan-x pan-y;}
 .content{overflow:auto;}
 .floor-section{overflow:auto;-webkit-overflow-scrolling:touch;}
-.sidebar{display:none;position:fixed;top:0;left:0;height:100vh;z-index:1000;box-shadow:4px 0 20px rgba(0,0,0,0.15)}.sidebar.open{display:flex}.stats-row{grid-template-columns:repeat(2,1fr)}.rooms-grid{grid-template-columns:1fr}.mobile-menu-btn{display:flex!important}.mobile-overlay{display:block!important;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.4);z-index:999}
+.sidebar{display:none;position:fixed;top:0;left:0;height:100vh;z-index:1000;box-shadow:4px 0 20px rgba(0,0,0,0.15)}.sidebar.open{display:flex}.stats-row{grid-template-columns:repeat(2,1fr)}.rooms-grid{grid-template-columns:1fr}.mobile-menu-btn{display:flex!important}.mobile-overlay{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.4);z-index:999}.mobile-overlay.active{display:block}
 #logout-btn-mobile{display:block!important}
 }
 </style>
@@ -797,10 +797,10 @@ function bindCanvas(office){
         ov=document.createElement('div');
         ov.id='mobile-overlay';
         ov.className='mobile-overlay';
-        ov.addEventListener('click',function(){sidebar.classList.remove('open');ov.style.display='none';});
+        ov.addEventListener('click',function(){sidebar.classList.remove('open');ov.classList.remove('active');});
         document.body.appendChild(ov);
       }
-      ov.style.display=sidebar.classList.contains('open')?'block':'none';
+      ov.classList.toggle('active',sidebar.classList.contains('open'));
     });
   }
   document.getElementById('btn-edit-'+office)?.addEventListener('click',()=>{
@@ -1895,6 +1895,8 @@ function renderModal(){
 function bindAll(){
   // Nav
   document.querySelectorAll('.nav-btn[data-view]').forEach(function(b){b.addEventListener('click',function(){
+    var _sb=document.querySelector('.sidebar');if(_sb)_sb.classList.remove('open');
+    var _ov=document.getElementById('mobile-overlay');if(_ov)_ov.classList.remove('active');
     if(b.dataset.view==='pet'){setState({modal:{type:'pet',office:S.office}});}
     else{setState({view:b.dataset.view,modal:null,editMode:false});}
   })});
@@ -1902,7 +1904,7 @@ function bindAll(){
     var sidebar=document.querySelector('.sidebar');
     if(sidebar)sidebar.classList.remove('open');
     var ov=document.getElementById('mobile-overlay');
-    if(ov)ov.style.display='none';
+    if(ov)ov.classList.remove('active');
     getToken(); // pre-warm token so it's ready before API call
     setState({office:b.dataset.office,modal:null,editMode:false});
   })});
