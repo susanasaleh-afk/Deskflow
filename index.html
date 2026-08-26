@@ -2,14 +2,8 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8"/>
-<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>Deskflow</title>
-<meta name="theme-color" content="#1D9E75"/>
-<meta name="apple-mobile-web-app-capable" content="yes"/>
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
-<meta name="apple-mobile-web-app-title" content="Deskflow"/>
-<link rel="manifest" href="/manifest.json"/>
-<link rel="apple-touch-icon" href="https://raw.githubusercontent.com/susanasaleh-afk/Deskflow/main/gig-logo-mint%20(2).png"/>
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet"/>
 <script src="https://cdn.jsdelivr.net/npm/@azure/msal-browser@3.28.0/lib/msal-browser.min.js"></script>
 <style>
@@ -619,30 +613,6 @@ async function setState(p){
       console.warn('loadOD failed:',e.message);
     }
   }
-  // Two-phase render: shell first (sidebar+topbar), then heavy content in next frame
-  // This prevents the main thread from freezing on mobile during office/day switch
-  if((p.office||p.dayOffset!==undefined)&&S.user){
-    var _root=document.getElementById('app');
-    if(_root){
-      var _spinner='<div style="display:flex;align-items:center;justify-content:center;height:40vh;flex-direction:column;gap:12px"><div style="width:28px;height:28px;border:3px solid #e5e7eb;border-top-color:#1D9E75;border-radius:50%;animation:spin 0.8s linear infinite"></div><div style="font-size:13px;color:#9ca3af">Loading...</div></div>';
-      try{
-        // Phase 1: render shell (sidebar + topbar) — fast, lets browser paint immediately
-        _root.innerHTML='<div class="app">'+renderSidebar()+'<div class="main">'+renderTopBar()+
-          (S.view!=='mybookings'?renderCalBar():'')+
-          '<div class="content" id="content">'+_spinner+'</div></div></div>'+
-          (S.modal?renderModal():'');
-      }catch(e){render();return;}
-      // Yield one frame so shell paints before heavy content render
-      await new Promise(r=>requestAnimationFrame(r));
-      // Phase 2: fill in content, then bind everything once
-      try{
-        var _ct=document.getElementById('content');
-        if(_ct)_ct.innerHTML=renderContent();
-      }catch(e){}
-      try{bindAll();}catch(e){}
-      return;
-    }
-  }
   render();
 }
 
@@ -813,7 +783,7 @@ function bindCanvas(office){
 }
 
 // ═══ RENDER ═══
-function render(fullRender){
+function render(){
   const root=document.getElementById('app');
   if(!root)return;
   if(!S.user){root.innerHTML=renderLogin();bindLogin();return}
