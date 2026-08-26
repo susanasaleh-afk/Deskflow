@@ -312,11 +312,11 @@ const USERS={
   async load(){
     const data=await api('users');
     DEMO_USERS.length=0;
-    data.forEach(u=>DEMO_USERS.push({id:u.id,name:u.name,email:u.email,initials:(u.name||'').split(' ').map(w=>w[0]?.toUpperCase()||'').slice(0,2).join(''),office:u.office||'Marbella'}));
+    data.forEach(u=>DEMO_USERS.push({id:u.id,name:u.name,email:u.email,initials:(u.name||'').split(' ').map(w=>w[0]?.toUpperCase()||'').slice(0,2).join(''),office:u.office||'Marbella',is_admin:u.is_admin===true,is_superadmin:u.is_superadmin===true}));
   },
   async setAdmin(email,isAdmin){
     const user=DEMO_USERS.find(u=>u.email===email);
-    if(user) await api('users','POST',{id:user.id,name:user.name,email:user.email,office:user.office,is_admin:isAdmin});
+    if(user){await api('users','POST',{id:user.id,name:user.name,email:user.email,office:user.office,is_admin:isAdmin});user.is_admin=isAdmin;}
   },
   async remove(id){
     await api('users','DELETE',null,{id});
